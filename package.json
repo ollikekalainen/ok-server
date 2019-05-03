@@ -1,0 +1,28 @@
+{
+  "main": "ok-server.js",
+  "name": "ok-server",
+  "version": "1.0.0",
+  "description": "Basic node.js http server",
+  "dependencies": {
+    "clparser": ">= 1.0.0"
+  },
+  "scripts": {
+  },
+  "engines": {
+    "node": ">= 8.0.0"
+  },
+  "bugs": "https://github.com/ollikekalainen/ok-server/issues",
+  "keywords": [
+    "javascript",
+    "http",
+    "server",
+    "api"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ollikekalainen/ok-server.git"
+  },
+  "homepage": "https://github.com/ollikekalainen/ok-server",
+  "author": "Olli Kekäläinen",
+  "license": "MIT"
+}

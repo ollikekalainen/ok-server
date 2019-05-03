@@ -1,0 +1,17 @@
+{
+    "port": 3009,
+    "sslPort": 0,
+    "httpsOptions": {
+        "pfx": "%LANNS_PFX%",
+        "passphrase": "%LANNS_PHRASE%"
+    },
+    "defaultDirectory": "C:\\www\\ok-server\\examples\\site",
+    "defaultDocument": "index.htm",
+    "virtualDirectories": {},
+    "accessFiltering": [],
+    "mimeTypes": {},
+    "api": [
+        "C:\\www\\ok-server\\examples\\server\\api-example"
+    ],
+    "pulseInterval": 1000
+}

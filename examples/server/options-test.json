@@ -1,0 +1,24 @@
+{
+    "accessFiltering": [],
+    "apiEntryPoint": "api",
+    "apiExtensions": [
+        "C:\\www\\ok-server\\examples\\server\\api-example"
+    ],
+    "defaultDirectory": "/sites/my-test",
+    "defaultDocument": "index.htm",
+    "httpsOptions": {
+        "pfx": "%LANNS_PFX%",
+        "passphrase": "%LANNS_PHRASE%"
+    },
+    "logApiRequests": false,
+    "logFileRequests": false,
+    "mimeTypes": {
+        ".mp3": "audio/mpeg",
+        ".wav": "audio/x-wav"
+    },
+    "port": 3099,
+    "pulseInterval": 1000,
+    "readinessTimeout": 10000,
+    "sslPort": 0,
+    "virtualDirectories": {}
+}

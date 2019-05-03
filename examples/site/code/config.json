@@ -1,0 +1,10 @@
+{
+	"source": {	
+		"basic": [
+			"api.js",
+			"app.js",
+			"site.css",
+			"site.htm"
+		]
+	}
+}
