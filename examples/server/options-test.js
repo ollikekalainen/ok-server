@@ -1,4 +1,4 @@
-const okserver = require( "/www/ok-server" );
+const okserver = require( "ok-server" );
 const options = okserver.defaultOptions;
 options.port = 3099;
 options.defaultDirectory = "/sites/my-test";

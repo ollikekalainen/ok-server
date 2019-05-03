@@ -2,7 +2,7 @@
     "accessFiltering": [],
     "apiEntryPoint": "api",
     "apiExtensions": [
-        "C:\\www\\ok-server\\examples\\server\\api-example"
+        "ok-server\\examples\\server\\api-example"
     ],
     "defaultDirectory": "/sites/my-test",
     "defaultDocument": "index.htm",

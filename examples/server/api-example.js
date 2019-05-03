@@ -14,7 +14,7 @@
 
 "use strict";
 
-const okserver = require("/www/ok-server");
+const okserver = require("ok-server");
 
 okserver.defineApiRequest([ 
 	{ name: "myIpAddress", parameters: {}, worker: __myIpAddress }

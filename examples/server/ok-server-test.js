@@ -1,5 +1,5 @@
 
-const okserver = require("/www/ok-server");
+const okserver = require("ok-server");
 
 function method1() {
 

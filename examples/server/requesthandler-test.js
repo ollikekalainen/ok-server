@@ -18,7 +18,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const RequestHandler = require( "/www/ok-server" ).RequestHandler;
+const RequestHandler = require("ok-server").RequestHandler;
 
 class TestRequestHandler extends RequestHandler {
 
