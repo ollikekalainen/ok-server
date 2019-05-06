@@ -20,8 +20,8 @@
 			defaultDirectory    string, default: __dirname + "/examples/site"
 		    defaultDocument     string, default: "index.htm"
 		    httpsOptions 		object, default: {
-		     		   					pfx: "%LANNS_PFX%",
-		        						passphrase: "%LANNS_PHRASE%"
+		     		   					pfx: "%OKSERVER_PFX%",
+		        						passphrase: "%OKSERVER_PHRASE%"
 		    						}
 		    logApiRequests 		boolean
 		    logFileRequests 	boolean
@@ -200,8 +200,8 @@ okserver.defaultOptions = {
 	defaultDirectory: helper.platformize( __dirname + "/examples/site" ),
     defaultDocument: "index.htm",
     httpsOptions: {
-        "pfx": "%LANNS_PFX%",
-        "passphrase": "%LANNS_PHRASE%"
+        "pfx": "%OKSERVER_PFX%",
+        "passphrase": "%OKSERVER_PHRASE%"
     },
     logApiRequests: false,
     logFileRequests: false,

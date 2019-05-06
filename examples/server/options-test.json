@@ -7,8 +7,8 @@
     "defaultDirectory": "/sites/my-test",
     "defaultDocument": "index.htm",
     "httpsOptions": {
-        "pfx": "%LANNS_PFX%",
-        "passphrase": "%LANNS_PHRASE%"
+        "pfx": "%OKSERVER_PFX%",
+        "passphrase": "%OKSERVER_PHRASE%"
     },
     "logApiRequests": false,
     "logFileRequests": false,
