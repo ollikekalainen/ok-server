@@ -122,12 +122,13 @@ class OKServer extends PrimalServer {
 		onSuccess( config );					
 	}
 
-	start( onError, onSuccess ) {
+	start( params={}) {
+		params.onError = params.onError||((error) => { this._handleError(error);})
+		params.onSuccess = params.onSuccess||(()=>{ console.log("Server started");});
 		const q = helper.queue();
-		onError = onError||((error) => { this._handleError(error);})
 		q.add(
 			() => {
-				this._startPulse( onError, q.next());
+				this._startPulse( params.onError, q.next());
 			},
 			() => {
 				const commands = { 
@@ -136,10 +137,10 @@ class OKServer extends PrimalServer {
 					}
 				};
 				this.cmds = helper.newCmds({ interval: 1000, commands: commands });
-				this.cmds.start( onError, q.next());
+				this.cmds.start( params.onError, q.next());
 			},
 			() => {
-				super.start( onError, onSuccess || (()=>{ console.log("Server started");}));
+				super.start( params );
 			}
 		).proceed();
 	}

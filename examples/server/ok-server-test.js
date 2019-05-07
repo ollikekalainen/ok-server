@@ -6,7 +6,7 @@ function method1() {
 	const server = okserver.createServer({
 		logFolder: __dirname + "/log",
 		pulseFolder: __dirname,
-		optionsFile: __dirname + "/options.json"
+		optionsFile: __dirname + "/options-test.json"
 
 	});
 	server.loadHandler( require("./requesthandler-test" ) );
@@ -17,7 +17,7 @@ function method1() {
 		handlerName: "test" 
 	});
 
-	server.start( (error) => {console.log(error);}, () => { console._log("Server initialized");}); 
+	server.start({ onSuccess: () => { console._log("Server initialized");}}); 
 }
 
 function method2() {
@@ -26,7 +26,7 @@ function method2() {
 		serverClass: MyServer,
 		logFolder: __dirname + "/log",
 		pulseFolder: __dirname,
-		optionsFile: __dirname + "/options.json"
+		optionsFile: __dirname + "/options-test.json"
 
 	});
 	server.start( (error) => {console.log(error);}, () => { console._log("Server initialized");}); 

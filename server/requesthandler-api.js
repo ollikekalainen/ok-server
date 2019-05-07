@@ -243,16 +243,16 @@ class Context {
 		this.requestContext = params.context;
 	}
 
-	cookies() {
+	get cookies() {
 		return this.requestContext.cookies;
 	}
 	
-	httpRequest() {
-		return this.context.request;
+	get httpRequest() {
+		return this.requestContext.request;
 	}
 
-	httpResponse() {
-		return this.context.response;
+	get httpResponse() {
+		return this.requestContext.response;
 	}
 
 }

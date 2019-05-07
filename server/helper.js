@@ -7,7 +7,7 @@
  
 
 
- 20190503
+ 20190507
 -----------------------------------------------------------------------------------------
 */
 
@@ -45,7 +45,7 @@ helper.logToFile = ( options ) => {
 	}
 	else if (!options && LOG) {
 		LOG.stop();
-		LOG = undefined;
+		setTimeout( () => { LOG = undefined; }, 100 );
 		console._log && (console.log = console._log);
 		console._warn && (console.warn = console._warn);
 		console._info && (console.info = console._info);
@@ -60,7 +60,7 @@ helper.logToFile = ( options ) => {
 		}
 		else {
 			LOG = new Log( helper.logToFile.__options );
-			LOG.start(() => { LOG.write( content );});
+			LOG.start(() => { LOG && LOG.write( content );});
 		}
 	}
 };

@@ -324,9 +324,12 @@ class PrimalServer {
 		return this;
 	}
 
-	addVirtualDirectory( params ) {
-		this.virtualDirectories[params.name||"/"] = new VirtualDirectory(params);
-		return this.virtualDirectories[params.name||"/"];
+	addVirtualDirectory( params = {}) {
+		if (!params.path || folderExist(params.path)) {
+			this.virtualDirectories[params.name||"/"] = new VirtualDirectory(params);
+			return this.virtualDirectories[params.name||"/"];
+		}
+		return;
 	}
 
 	extendApi(apiExtension) {
@@ -429,18 +432,30 @@ class PrimalServer {
 		return this;
 	}
 
-	start( onError, onSuccess ) {
+	start( params={}) {
+
+		const onError = params.onError||(()=>{});
+		const onSuccess = params.onSuccess||(()=>{});
+
+		if (!folderExist( this.defaultDirectory)) {
+			onError( new Error("E_INVALIDDEFAULTDIRECTORY: " + this.defaultDirectory ));
+			return;
+		}
 
 		this._resetBase();
 		this._resetApiRequestHandler();
 
 		if (typeof this.options.virtualDirectories == "object") {
 			for (let name in this.options.virtualDirectories) {
-				this.addVirtualDirectory({ 
+				let v = this.addVirtualDirectory({ 
 					name: name, 
 					path: this.options.virtualDirectories[name].path, 
 					handlerName: this.options.virtualDirectories[name].handlerName||"default"
 				});
+				if (!v) {
+					onError( new Error("E_INVALIDVIRTUALPATH: " + this.options.virtualDirectories[name].path));
+					return;
+				}
 			}
 		}
 
@@ -448,13 +463,19 @@ class PrimalServer {
 		this._createAccessFilteringRules();
 
 		if (this.port || this.sslPort) {
+			const readines = { isReady: () => {
+				return (!this.port*this.sslPort) || (readines.http && readines.https );
+			}};
 			if (this.port) {
 				try {
 					this._servers.http = http.createServer(( request, response ) => { 
 						this._onRequest( request, response );
 					}).on( "error", (error) => { this._handleStartError( onError, error );}
-					).on( "listening", () => { this.onHttpReady();});
-					//this._triggerReadiness( onError, () => { this.onHttpReady();});
+					).on( "listening", () => { 
+						readines.http = true; 
+						this.onHttpReady();
+						readines.isReady() && onSuccess();
+					});
 					this.httpServer.listen( this.port );
 					
 				}
@@ -480,15 +501,17 @@ class PrimalServer {
 					this._servers.https = https.createServer( options, (request, response) => {
 						this._onRequest( request, response );
 					}).on( "error", (error) => { this._handleStartError( onError, error, true );}
-					).on( "listening", () => { this.onHttpsReady();});
-					//this._triggerReadiness( onError, () => { this.onHttpsReady();}, "https" );
+					).on( "listening", () => { 
+						readines.https = true; 
+						this.onHttpsReady();
+						readines.isReady() && onSuccess();
+					});
 					this.httpsServer.listen( this.sslPort );
 				}
 				catch (error) {
 					onError(error);
 				}
 			}
-			onSuccess();
 		}
 		else {
 			onError( new Error("E_NOSERVERPORT"));
@@ -496,14 +519,14 @@ class PrimalServer {
 		return this;
 	}
 
-	stop( onClose ) {
+	stop( onStop = (()=>{}) ) {
 		let serverCount = Number(!!this.httpServer) + Number(!!this.httpsServer);
 		if (serverCount) {
-			this.httpServer && this.httpServer.close(() => { --serverCount || onClose();});
-			this.httpsServer && this.httpsServer.close(() => { --serverCount || onClose();});
+			this.httpServer && this.httpServer.close(() => { --serverCount || onStop();});
+			this.httpsServer && this.httpsServer.close(() => { --serverCount || onStop();});
 		}
 		else {
-			onClose();
+			onStop();
 		}
 		return this;
 	}
@@ -744,4 +767,14 @@ function stringifyCookie( cookie, encoder = encodeURIComponent )	{
 		console.log( "Cookie Object Error: no name property" );
 	}
 	return cookieString;
+}
+
+function folderExist(folder) {
+	let exists = true;
+	try {
+		fs.statSync(folder);
+	} catch(error) {
+		exists = false;
+	}
+	return exists;
 }
