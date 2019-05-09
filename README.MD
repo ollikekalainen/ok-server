@@ -311,8 +311,8 @@ API request are done with the following function.
 <a name="api-system.api-response"></a>
 ### API-response
 
-Response payload for API requests contains stringified json object. In case of success the json
-object is following.
+The response payload to the API request contains a stringified json object. In case of success the json
+object is as follows.
 
 &emsp;**{**\
 &emsp;&emsp;&emsp;**succeed**: **true**,\
@@ -322,8 +322,8 @@ object is following.
 &emsp;**}**
 
 \
-The response *content* property may contain a value of be any json-compatible data type. *Elapsed* 
-property indicates the elapsed time of handling of the request as milliseconds.
+The response *content* property may contain the value of of any json-compatible data type. *Elapsed* 
+property indicates the elapsed time of processing the request in milliseconds..
 
 In case of error the response payload contains following json object.
 
@@ -390,8 +390,7 @@ of the *OKServer* can be overwritten and the content filled with the name-values
 <a name="api-system.extending-api.implementing-api-extension-module"></a>
 #### Implementing API extension module
 
-First thing to do is creating a new API module. Below is an example of the possible content of 
-the module.
+The first thing is to create a new API extnesion module. Below is an example of the possible content of the module.
 
     const okserver = require("ok-server");
       
@@ -455,7 +454,7 @@ New API request is defined the API extension module with the OKServer method
 <a name="api-system.extending-api.api-worker-functions-(and-context)"></a>
 #### API worker functions
 
-An API request will get associated worker function to be called. To this function is passed a 
+The API request causes the worker function associated with it to be called. To this function is passed a 
 [*Context*](#reference.context-class) object. If the function is an array function, *Context* object is passed as 
 function parameter. In case of regular functions the context is available also as a value of *this*
 keyword.
@@ -508,7 +507,7 @@ keyword.
 <a name="reference.module-ok-server.properties"></a>
 #### Properties
 
--   **defaultOptions**     *object* - default options object whoses values are used on creating and starting the server in the case 
+-   **defaultOptions**     *object* - default options object whose values are used on creating and starting the server in the case 
     these values are not overwritten in the options file or passed as the options parameter when creating the server.
     These option values are also written to the options file when it is created.
 -   **OKServer**           *class* - OKServer class for instantiating server object or extending one.
@@ -593,7 +592,7 @@ keyword.
     - **path**: string
     - **return value**: *OKServer*
 
--   **addMimeType( fileExtension, type )** - Adds a new type into the server's supported Mime types list.
+-   **addMimeType( fileExtension, type )** - Adds a new type into the server's supported MIME types list.
     - **fileExtension**: *string*
     - **type**: *string*
     - **return value**: *OKServer*
@@ -612,11 +611,12 @@ keyword.
 -   **extendApi(apiExtensionModule)** - Extends the API system with new api extension modules.
     - **apiExtensionModule**: *string* value representing the name of the module or *array* of module names as string values
     - **return value**: *OKServer*
-
+<a name="reference.okserver-class.methods.getRemoteIp"></a>
 -   **getRemoteIp( request )** - Solves the remote IP address of the http request.
     - **request**:     *http.IncomingMessage*
     - **return value**: *string*
 
+<a name="reference.okserver-class.methods.getVirtualDirectory"></a>
 -   **getVirtualDirectory(name)** - Returns a virtual directory by it's name.
     - **name**: *string*
     - **return value**: *VirtualDirectory*
@@ -635,12 +635,13 @@ keyword.
     - **module**: *string* value representing the name of the module or *module*
     - **return value**: *OKServer*
 
--   **removeMimeType(ext)** - Removes a Mime type from the list of the supported Mime types.
+-   **removeMimeType(ext)** - Removes a MIME type from the list of the supported MIME types.
     - **return value**: *OKServer*
-
+<a name="reference.okserver-class.methods.setResponseCookie"></a>
 -   **setResponseCookie( response, cookie, encoder )** - Adds a cookie to the Http response by adding a Set-Cookie header.
     - **response:** *http.ServerResponse*
-    - **cookie** *object | array:object*
+<a name="reference.okserver-class.methods.setResponseCookie.cookie"></a>
+    - **cookie** *object|array* - Cookie object or array of cookie objects.
         - **name** *string*, mandatory
         - **value** *string*, default: "", encoded with encodeURIComponent()
         - **path** *string*, default: "/"
@@ -651,6 +652,7 @@ keyword.
         - **httpOnly** *boolean*
         - **sameSite** *boolean* (true: "strict", false: no sameSite attribute) or string ("strict"/"lax")
         - **secure** *boolean*
+<a name="reference.okserver-class.methods.setResponseCookie.encoder"></a>
     - **encoder** *function*, default: encodeURIComponent
 
 -   **start( params )** - Starts the server i.e. the *http.Server* or *https.Server* or both.
@@ -702,7 +704,7 @@ Provides an opportunity to modify API specifications, for example, to complete a
 -   **httpsServer**         *https.Server* (readonly)  - Node.js *https.Server* object. Property is undefined if the *sslPort* option is set as 0.
 -   **logApiRequests**      *boolean* - Indicates whether API requests are written in to the log file.
 -   **logFileRequests**     *boolean* - Indicates whether file requests are written in to the log file.
--   **mimeTypes**           *object* (readonly) - Includes Mime types the server is supporting.
+-   **mimeTypes**           *object* (readonly) - Includes MIME types the server is supporting.
 -   **port**                *number* - *http.Server* port number .
 -   **sslPort**             *number* - *https.Server* port number.
     
@@ -715,7 +717,7 @@ Provides an opportunity to modify API specifications, for example, to complete a
 #### Initialization
 
 VirtualDirectory objects are initialized by the OKServer and are accessible with
-the method *getVirtaulDirectory*.
+the method [*getVirtaulDirectory*](#reference.okserver-class.methods.getVirtualDirectory).
 
 <a name="reference.virtualdirectory-class.properties"></a>
 #### Properties
@@ -739,60 +741,50 @@ worker functions as the first parameter (and also as #this# keyword if the worke
 <a name="reference.context-class.properties"></a>
 #### Properties
 
--   **cookies**             *object* - Requests cookies.
--   **httpRequest**         *http.IncomingMessage*
--   **httpResponse**        *http.ServerResponse*
--   **onError**             *callback function(Error)*
--   **onSuccess**           *callback function(responseContent)*
--   **request**             *reuest* object as it was in http request body
--   **requestHandler**      *ApiRequestHandler* - ApiRequestHandler extends RequestHandler
+-   **cookies**             *object* - Request cookies as an object.
+-   **httpRequest**         *http.IncomingMessage* - Request as the node.js IncomingMessage object.
+-   **httpResponse**        *http.ServerResponse* - Response as the node.js ServerResponse object.
+-   **onError**             *callback function(Error)* - A callback function to be called in the case of error.
+-   **onSuccess**           *callback function(responseContent)* - A callback function to be called in the case of success. 
+        The responseContent parameter will be assigned as the value of the content property of the API response object.
+-   **request**             *reuest* API request object as it is in http request body.
+-   **requestHandler**      *ApiRequestHandler* - ApiRequestHandler object.
 -   **requestName**         *string* - The name of the request made by a client.
 -   **server**              *OKServer* - The instance of OKServer.
--   **started**             *number* - The time when request is received (as new Date().getTime()).
+-   **started**             *number* - The request time as milliseconds (Date().getTime()).
 
 
 
-<a name="reference.requestcontext"></a>
+<a name="reference.requestcontext-class"></a>
 ### RequestContext
 
-<a name="reference.requestcontext.initialization"></a>
+<a name="reference.requestcontext-class.initialization"></a>
 #### Initialization
 
 RequestContext objects are initialized by the OKServer on every client request and passed to 
 the appropriate request handler as the only parameter of the onRequest method.
 
-<a name="reference.requestcontext.properties"></a>
+<a name="reference.requestcontext-class.properties"></a>
 #### Properties
 
 -   **cookies**       *object* - Requests cookies.
--   **handler**       *RequestHandler*
--   **handlerName**   *string* - Name of the Request Handler that served the request.
+-   **handler**       *RequestHandler* - Request Handler object.
+-   **handlerName**   *string* - Name of the Request Handler serving the request.
 -   **path**          *string* - The full path in request URL.
--   **pathName**      *string* - The request url pathname.
--   **request**       *http.IncomingMessage*
--   **response**      *http.ServerResponse*
--   **server**        *OKServer* - The instance of OKServer.
+-   **pathName**      *string* - The pathname in request URL.
+-   **request**       *http.IncomingMessage* - Request as the node.js IncomingMessage object.
+-   **response**      *http.ServerResponse* - Response as the node.js ServerResponse object.
+-   **server**        *OKServer* - The instance of the OKServer.
 -   **url**           *object* - Server's url parsed to the node.js URL object.
 -   **virtualDirectory** *VirtaulDirectory* - The virtual direcory object the request url pathname points to.
 
 
-<a name="reference.requestcontext.methods"></a>
+<a name="reference.requestcontext-class.methods"></a>
 #### Methods
 
--   **setResponseCookie( cookie, encoder )**
-    - **cookie** *object | array:object*
-        - **name** *string*, mandatory
-        - **value** *string*, default: "", encoded with encodeURIComponent()
-        - **path** *string*, default: "/"
-        - **domain** *string*
-        - **expires** *Date*
-        - **expirationDays** *number*
-        - **maxAge** *number*
-        - **httpOnly** *boolean*
-        - **sameSite** *boolean* (true: "strict", false: no sameSite attribute) or string ("strict"/"lax")
-        - **secure** *boolean*
-    - **encoder** *function*, default: encodeURIComponent
-
+-   **setResponseCookie( cookie, encoder )** - Adds a cookie to the Http response by adding a Set-Cookie header.
+    - **cookie** *object|array* - See [*OKServer.setResponseCookie()*](#reference.okserver-class.methods.setResponseCookie.cookie)
+    - **encoder** *function*,  - See [*OKServer.setResponseCookie()*](#reference.okserver-class.methods.setResponseCookie.encoder)
 
 
 <a name="reference.module-requesthandler"></a>
@@ -801,15 +793,14 @@ the appropriate request handler as the only parameter of the onRequest method.
 <a name="reference.module-requesthandler.properties"></a>
 #### Properties
 
--   **RequestHandler** *class RequestHandler*
+-   **RequestHandler** *class RequestHandler* - The RequestHandler class for the Request Handler inheritance.
 
 <a name="reference.module-requesthandler.methods"></a>
 #### Methods
 
--   **requesthandler.getHandler( handlerName )**
-    - **handlerName**     *string*
-    - **Return value**: *object* 
-        inherited from RequestHandler
+-   **requesthandler.getHandler( handlerName )** - Get the Request Handler object by it's name.
+    - **handlerName**     *string* - Name of the handler.
+    - **Return value**: *object* - Request Handler object inherited from RequestHandler.
 
 
 
@@ -823,55 +814,40 @@ the appropriate request handler as the only parameter of the onRequest method.
 
 -   **params**  *object*
     - **server**  *OKServer*
-    - **name**    *string*
+    - **name**    *string*  Name of the request handler.
 
 <a name="reference.requesthandler-class.properties"></a>
 #### Properties
 
--   **options**     *object*
-     Shortcut to OKServer.options
-
--   **server**       *OKServer*
+-   **options**     *object* - Shortcut to [OKServer.options](#reference.okserver-class.options)
+-   **server**       *OKServer* - OKServer object.
 
 <a name="reference.requesthandler-class.methods"></a>
 #### Methods
 
--   **getRemoteIp( request )**
+-   **getRemoteIp( request )** - Shortcut to [OKServer.getRemoteIp()](#reference.okserver-class.methods.getRemoteIp).
     - **request**     *http.IncomingMessage*
     - **Return value**: *string*
 
--   **sendResponse( context, params )**
-    - **context**: *RequestContext*
+-   **sendResponse( context, params )** - Sends response to the client.
+    - **context**: *RequestContext* - [RequestContext](#reference.requestcontext-class) object.
     - **params**  *object*
-        - **status** *number*, default: 200
-        - **headers** *objects*, default: {}
-        - **body** *string/ReadableStream*, default: undefined
-        
--   **setResponseCookie( response, cookies, encoder )**
-    - **response** *http.ServerResponse*
-    - **cookie** *object | array:object*
-        - **name** *string*, mandatory
-        - **value** *string*, default: "", encoded with encoder function passed as the 3rd parameter
-        - **path** *string*, default: "/"
-        - **domain** *string*
-        - **expires** *Date*
-        - **expirationDays** *number*
-        - **maxAge** *number*
-        - **httpOnly** *boolean*
-        - **sameSite** *string* ("strict"/"lax") or *boolean* (true: "strict", false: no sameSite attribute included)
-        - **secure** *boolean*
-    - **encoder** *function*, default: encodeURIComponent
+        - **status** *number*  - The Http Status code. Default value is 200.
+        - **headers** *objects* - Http response headrers. Default value is {}.
+        - **body** *string/ReadableStream* - The content for the response body. Default value is undefined (means that the response body is not included).
 
--   **solveMimeName( extension )**
-    - **extension** *string*
-    - **Return value**: *string*
+-   **setResponseCookie( response, cookies, encoder )**  - See [*OKServer.setResponseCookie()*](#reference.okserver-class.methods.setResponseCookie)
+
+-   **solveMimeName( extension )** - Get MIME Type by file extension.
+    - **extension** *string* - File extension.
+    - **Return value**: *string* - MIME type.
 
 -   **onRequest( context )**
-    - **context**     *RequestContext*
+    - **context**     *RequestContext* - [RequestContext](#reference.requestcontext-class) object.
 
 -   **decodeURI( uri )**
-    - **uri**     *string*
-    - **Return value**: *string*
+    - **uri**     *string*  - URI string.
+    - **Return value**: *string* - Decoded URI string.
 
 
 \
