@@ -40,7 +40,7 @@ File handler supports partial file requests in addition to normal file transfer.
         * [API worker functions](#api-system.extending-api.api-worker-functions-(#and-context))
 * [Reference](#reference)
     * [Module ok-server](#reference.module-ok-server)
-        * [Methods](#reference.module-ok-server.methods)
+        * [Functions](#reference.module-ok-server.methods)
         * [Properties](#reference.module-ok-server.properties)
     * [OKServer class](#reference.okserver-class)
         * [Initialization](#reference.okserver-class.initialization)
@@ -57,8 +57,8 @@ File handler supports partial file requests in addition to normal file transfer.
         * [Initialization](#reference.requestcontext-class.initialization)
         * [Properties](#reference.requestcontext-class.properties)
     * [Module requesthandler](#reference.module-requesthandler)
-        * [Properties](#reference.module-requesthandler.properties)
         * [Functions](#reference.module-requesthandler.functions)
+        * [Properties](#reference.module-requesthandler.properties)
     * [RequestHandler class](#reference.requesthandler-class)
         * [Initialization](#reference.requesthandler-class.initialization)
         * [Properties](#reference.requesthandler-class.properties)
@@ -197,7 +197,7 @@ it with server's [*loadHandler*](#reference.okserver-class.methods.loadHandler) 
 below. The following three conditions must be met:
 
 1. New request handler class must extend [*RequestHandler*](#reference.requestcontext) class defined in requesthandler.js,
-2. The class instances must be given a proper name representing the handle name.
+2. The class instances must be given a proper name representing the handler name.
 3. Module must export the new *RequestHandler* class defined in it.
 
 The request handler is utilized by defining it as a virtual directory request handler.
@@ -222,7 +222,7 @@ to the handlerName parameter.
             let responseBody = "";
             let statusCode = 200;
             // The code that inspects the request, adds response headers needed, and 
-            // constructs a proper response body as string/ReadableStream
+            // constructs a proper response body as string/stream.Readable
             this.sendResponse( context, { 
                 status: statusCode, 
                 headers: responseHeaders, 
@@ -344,7 +344,7 @@ In case of error the response payload contains following json object.
 <a name="api-system.pre-defined-api-requests.api"></a>
 #### api
 
-The content property of the response to the api request *api* contains complete specifications 
+The content property of the response to the API request *api* contains complete specifications 
 of the all currently implemneted API services as they are defined with [*okserver.defineApiRequest()*](#reference.module-ok-server.methods.defineApiRequest).
 
 &emsp;**{**\
@@ -373,8 +373,11 @@ of the all currently implemneted API services as they are defined with [*okserve
 &emsp;&emsp;&emsp;**}**\
 &emsp;**}**
 
+This API service is especially useful for creating automatic client-side API module. See an
+example of the source file 
+[here](https://github.com/ollikekalainen/ok-server/blob/master/examples/site/code/api.js).
 
-\
+
 <a name="api-system.pre-defined-api-requests.getconfig"></a>
 #### getConfig
 
@@ -382,8 +385,7 @@ By default, the content property of the response to the api request *getConfig* 
 object. In order to include the desired values to the object the [*onApiGetConfig*](#reference.ok-server-class.methods.onApiGetConfig) method
 of the *OKServer* can be overwritten and the content filled with the name-values pairs as wanted.
 
-
-
+\
 <a name="api-system.extending-api"></a>
 ### Extending API
 
@@ -442,7 +444,7 @@ The first thing is to create a new API extnesion module. Below is an example of 
 <a name="api-system.extending-api.loading-api-extension-module"></a>
 #### Loading API extension module
 
-API extnesion modules are loaded with OKServer 
+API extension modules are loaded with OKServer 
 [*extendApi*](#reference.okserver-class.methods.extendApi) method.
 
 <a name="api-system.extending-api.defining-new-api-requests"></a>
@@ -471,13 +473,13 @@ keyword.
 <a name="reference.module-ok-server.methods"></a>
 #### Functions
 
--   **okserver.createServer( options )** - Creates OKServer object with the desired options
+-   **okserver.createServer( options )** - Creates an OKServer object with the desired options.
 
 	-	**options**  See server [*options*](#reference.okserver-class.options).
 
 		**Return value**: *OKServer*
 <a name="reference.module-ok-server.methods.defineApiRequest"></a>
--   **okserver.defineApiRequest(definition)** - Adds definition of a new API service
+-   **okserver.defineApiRequest(definition)** - Creates the definition of a new API service.
           
     -   **definition**      *object*\
         &emsp;**{**\
@@ -515,7 +517,7 @@ keyword.
     a [new request handler](#request-handlers.request-handler-prototype).
 
 
-
+\
 <a name="reference.okserver-class"></a>
 ### OKServer class
 
@@ -528,19 +530,19 @@ keyword.
 <a name="reference.okserver-class.options"></a>
 #### Options
 
--   **accessFiltering**:     *array* - Contains access filtering objects with following properties.
+-   **accessFiltering**     *array* - Contains access filtering objects with following properties.
     - filter:
-        - **path**: *string*
-        - **status**: *string* ("forbidden"|"permitted")
--   **apiEntryPoint**:       *string* - Name of the virtual folder that serves as the entry point for the API requests. Default value is "api".
--   **apiExtensions**:       *array* - Full names of the API extension mofule files to be loaded before the server starts. Default is [].
--   **defaultDirectory**:    *string* - The full folder name of the file request default directory for situations where the URL does not contain a path. Default value is __dirname + "/examples/site".
--   **defaultDocument**:     *string* - Name of the default HTML document. Default value is "index.htm".
--   **httpsOptions**:        *object* - Contains options needed in creating HttpsServer. Can be either **{ pfx**: *string*, **passphrase**: *string* **}** or **{ key**: *string*, **cert**: *string* **}**.
+        - **path** *string*
+        - **status** *string* ("forbidden"|"permitted")
+-   **apiEntryPoint**       *string* - Name of the virtual folder that serves as the entry point for the API requests. Default value is "api".
+-   **apiExtensions**       *array* - Full names of the API extension mofule files to be loaded before the server starts. Default is [].
+-   **defaultDirectory**    *string* - The full folder name of the file request default directory for situations where the URL does not contain a path. Default value is __dirname + "/examples/site".
+-   **defaultDocument**     *string* - Name of the default HTML document. Default value is "index.htm".
+-   **httpsOptions**        *object* - Contains options needed in creating HttpsServer. Can be either **{ pfx**: *string*, **passphrase**: *string* **}** or **{ key**: *string*, **cert**: *string* **}**.
         Default value is **{ pfx**: "%OKSERVER_PFX%", **passphrase**: "%OKSERVER_PHRASE%" **}**.
--   **logApiRequests**:      *boolean* - Indicates whether the API requests are written to the log file. Default value is false.
--   **logFileRequests**:     *boolean* - Indicates whether the file requests are written to the log file. Default value is false.
--   **mimeTypes**:           *object* - Includes MIME types supported by the server as the following object.
+-   **logApiRequests**      *boolean* - Indicates whether the API requests are written to the log file. Default value is false.
+-   **logFileRequests**     *boolean* - Indicates whether the file requests are written to the log file. Default value is false.
+-   **mimeTypes**           *object* - Includes MIME types supported by the server as the following object.
 
     &emsp;&emsp;**{**\
     &emsp;&emsp;&emsp;&emsp;**&lt;extension(1)&gt;**: *string*,\
@@ -565,19 +567,19 @@ keyword.
     - **pfd**           application/pdf
     - **txt**           text/plain; charset=utf-8
 
--   **optionsFile**:         *string* - The full name of the JSON options file where the server's options are read from. 
+-   **optionsFile**         *string* - The full name of the JSON options file where the server's options are read from. 
         Options in the file are overwritten by the options passed as 
         options parameter to the createServer function or OKServer constructor. Default value is \__dirname + "options.json".
     
     Name of the JSON file where options are read from. 
                         
--   **port**:                *number* - Port number for the *http.Server*. If set as 0, the server is not instantiated. Default value is 3002.
--   **pulseFolder**:         *string* - Full name of the folder where the pulse file is written. The purpose of the Pulse is prevent the server 
-        starting even if the script is re-run. If the options is not set, pulse does not start.
--   **pulseInterval**:       *number* - The interval as milliseconds where the pulse file is rewritten. Default value is 1000.
--   **serverClass**:         *class* - The class of the server object to create. It must be inherited from the *OKServer*. Default value is *OKServer*.
--   **sslPort**:             *number*  - Port number for the *https.Server*. If set as 0, the server is not instantiated. Default value is 3002.
--   **virtualDirectories**:  *object*,\
+-   **port**                *number* - Port number for the *http.Server*. If set as 0, the server is not instantiated. Default value is 3002.
+-   **pulseFolder**         *string* - Full name of the folder where the pulse file is written. The purpose of the Pulse is prevent the server 
+        starting if the script is re-run. If the options is not set, pulse does not start.
+-   **pulseInterval**       *number* - The interval as milliseconds where the pulse file is rewritten. Default value is 1000.
+-   **serverClass**         *class* - The class of the server object to create. It must be inherited from the *OKServer*. Default value is *OKServer*.
+-   **sslPort**             *number*  - Port number for the *https.Server*. If set as 0, the server is not instantiated. Default value is 3002.
+-   **virtualDirectories**  *object*,\
     &emsp;&emsp;**{**\
     &emsp;&emsp;&emsp;&emsp;**&lt;name(1)&gt;**: **{ path**: *string*, **handler**: *string* **}**,\
     &emsp;&emsp;&emsp;&emsp;...,\
@@ -589,40 +591,41 @@ keyword.
 #### Methods
 
 -   **addForbiddenPath( path )** - Adds a forbidden path to the server. This path is not accessible for the client.
-    - **path**: string
+    - **path** string
     - **return value**: *OKServer*
 
 -   **addMimeType( fileExtension, type )** - Adds a new type into the server's supported MIME types list.
-    - **fileExtension**: *string*
-    - **type**: *string*
+    - **fileExtension** *string*
+    - **type** *string*
     - **return value**: *OKServer*
 
 -   **addPermittedPath( path )** - Adds a permitted path to the server. It is only meaninful if the parent of the added path is a forbidden path.
-    - **path**: *string*
+    - **path** *string*
     - **return value**: *OKServer*
 <a name="reference.okserver-class.methods.addVirtualDirectory"></a>
 -   **addVirtualDirectory( params )** - Adds a new virtual directory to the server and associates a request handler for it.
     - **params** *object*
-        - **name**: *string*
-        - **path**: *string*
-        - **handlerName**: *string*, default: "default"
-    - **return value**: *VirtualDirectory* - If the *path* parameter is included and the folder contained by the parameter does not exist, the reurn value is *undefined*.
+        - **name** *string*
+        - **path** *string*
+        - **handlerName** *string*, default: "default"
+    - **return value**: [*VirtualDirectory*](#reference.virtualdirectory-class) - If the *path* 
+            parameter is included and the folder contained by the parameter does not exist, the reurn value is *undefined*.
 <a name="reference.okserver-class.methods.extendApi"></a>
 -   **extendApi(apiExtensionModule)** - Extends the API system with new api extension modules.
-    - **apiExtensionModule**: *string* value representing the name of the module or *array* of module names as string values
+    - **apiExtensionModule** *string* - The name of the module or *array* of module names as string values
     - **return value**: *OKServer*
 <a name="reference.okserver-class.methods.getRemoteIp"></a>
 -   **getRemoteIp( request )** - Solves the remote IP address of the http request.
-    - **request**:     *http.IncomingMessage*
+    - **request**     *http.IncomingMessage*
     - **return value**: *string*
 
 <a name="reference.okserver-class.methods.getVirtualDirectory"></a>
 -   **getVirtualDirectory(name)** - Returns a virtual directory by it's name.
-    - **name**: *string*
-    - **return value**: *VirtualDirectory*
+    - **name** *string*
+    - **return value**: [*VirtualDirectory*](#reference.virtualdirectory-class)
 
 -   **getVirtualDirectoryPath( name )** - Returns the path of the virtual directory by the name of the directory.
-    - **name**: *string*
+    - **name** *string*
     - **return value**: *string*
 
 -   **isForbidden(url) -> boolean** - Indicates whether the url points to a forbidden path.
@@ -632,7 +635,7 @@ keyword.
     - **return value**: *boolean*
 <a name="reference.okserver-class.methods.loadHandler"></a>
 -   **loadHandler( module|modulename )** - Loads a new request handler module
-    - **module**: *string* value representing the name of the module or *module*
+    - **module** *string* - The name of the module or *module*
     - **return value**: *OKServer*
 
 -   **removeMimeType(ext)** - Removes a MIME type from the list of the supported MIME types.
@@ -643,7 +646,7 @@ keyword.
 <a name="reference.okserver-class.methods.setResponseCookie.cookie"></a>
     - **cookie** *object|array* - Cookie object or array of cookie objects.
         - **name** *string*, mandatory
-        - **value** *string*, default: "", encoded with encodeURIComponent()
+        - **value** *string*, default: "" (encoded with the encodeURIComponent function)
         - **path** *string*, default: "/"
         - **domain** *string*
         - **expires** *Date*
@@ -657,39 +660,39 @@ keyword.
 
 -   **start( params )** - Starts the server i.e. the *http.Server* or *https.Server* or both.
     -   **params**  *object*
-        - **onError**: *function(error)*
-        - **onSuccess**: *function()*
+        - **onError** *function(error)* - Called in the case of error.
+        - **onSuccess** *function()* - Called when server is started listening.
     
 -   **stop( onStop )** - Stops the server.
-    - **onStop**: *function()*, Called when server is stopped listening.
+    - **onStop** *function()* - Called when server is stopped listening.
 
 -   **onApiApi( onError, onSuccess, context, iface )** - An event method that is triggered just before the response to the request [*api*](#api-system.pre-defined-api-requests.api) is sent.
 Provides an opportunity to modify API specifications, for example, to complete api documentation. Overwrite this in child class.
-    - **onError**: *function(error)*
-    - **onSuccess**: *function(alteredIface)* - The function must be called in order for the http response to be sent.
-    - **context**: *Context* - see requesthandler-api.js
-    - **iface**: *object* - API definitions object
+    - **onError** *function(error)* - To be called in the case of error.
+    - **onSuccess** *function(alteredIface)* - The function must be called in order for the http response to be sent.
+    - **context** *Context* - see requesthandler-api.js
+    - **iface** *object* - API definitions object
 <a name="reference.ok-server-class.methods.onApiGetConfig"></a>
 -   **onApiGetConfig( onError, onSuccess, context, config )** - An event method that is triggered just before the response to the request 
         [*getConfig*](#api-system.pre-defined-api-requests.getconfig) is sent.
         Provides the opportunity to complete the configuration data sent to the client. Overwrite this in child class.
-    - **onError**: *function(error)*
-    - **onSuccess**: *function(alteredConfig)* - The function must be called in order for the http response to be sent.
-    - **context**: *Context* - See requesthandler-api.js
-    - **config**: *object* - Configuration object that will be delivered as the response to the client's [*getConfig*](#api-system.pre-defined-api-requests.getconfig) request.
+    - **onError** *function(error)* - To be called in the case of error.
+    - **onSuccess** *function(alteredConfig)* - The function must be called in order for the http response to be sent.
+    - **context** *Context* - See requesthandler-api.js
+    - **config** *object* - Configuration object that will be delivered as the response to the client's [*getConfig*](#api-system.pre-defined-api-requests.getconfig) request.
 
 -   **onHttpReady()** - An event method that is triggered when httpServer is started listening. Overwrite this in child class.
 
 -   **onHttpsReady()**  - An event method that is triggered when httpsServer is started listening. Overwrite this in child class.
 
 -   **onRequest(context)** - An event method that is triggered before the actual handling of the request. Overwrite this in child class.
-    - **context**     *RequestContext*
+    - **context**     *RequestContext* - The [*RequestContext*](#reference.requestcontext-class) object.
     
 -   **onResponse( context, params )** - An event method that is triggered the actual sending of the response. Overwrite this in child class.
-    - **context**: *RequestContext*
-    - **params.status**: *number* - The Http Status code.
-    - **params.headers**: *objects*, Http response headrers.
-    - **params.body**: *string/ReadableStream* - The content for the response body.
+    - **context** *RequestContext* - The [*RequestContext*](#reference.requestcontext-class) object.
+    - **params.status** *number* - The Http Status code.
+    - **params.headers** *objects*, Http response headrers.
+    - **params.body** *string/stream.Readable* - The content for the response body.
        
 
 <a name="reference.okserver-class.properties"></a>
@@ -724,7 +727,7 @@ the method [*getVirtaulDirectory*](#reference.okserver-class.methods.getVirtualD
  
 -   **name**        *string* - Name of the virtual directory.
 -   **path**        *string* - Virtual directory path.
--   **handler**     *RequestHandler* - The handler associated to the virtual directory.
+-   **handler**     *RequestHandler* - The [request handler](#reference.requesthandler-class) associated to the virtual directory.
 -   **handlerName** *string* - The name of the handler associated to the virtual directory.
 
            
@@ -756,7 +759,7 @@ worker functions as the first parameter (and also as #this# keyword if the worke
 
 
 <a name="reference.requestcontext-class"></a>
-### RequestContext
+### RequestContext class
 
 <a name="reference.requestcontext-class.initialization"></a>
 #### Initialization
@@ -790,18 +793,17 @@ the appropriate request handler as the only parameter of the onRequest method.
 <a name="reference.module-requesthandler"></a>
 ### Module requesthandler
 
-<a name="reference.module-requesthandler.properties"></a>
-#### Properties
-
--   **RequestHandler** *class RequestHandler* - The RequestHandler class for the Request Handler inheritance.
-
-<a name="reference.module-requesthandler.methods"></a>
-#### Methods
+<a name="reference.module-requesthandler.functions"></a>
+#### Functions
 
 -   **requesthandler.getHandler( handlerName )** - Get the Request Handler object by it's name.
     - **handlerName**     *string* - Name of the handler.
     - **Return value**: *object* - Request Handler object inherited from RequestHandler.
 
+<a name="reference.module-requesthandler.properties"></a>
+#### Properties
+
+-   **RequestHandler** *class RequestHandler* - The RequestHandler class for the Request Handler inheritance.
 
 
 <a name="reference.requesthandler-class"></a>
@@ -810,11 +812,8 @@ the appropriate request handler as the only parameter of the onRequest method.
 <a name="reference.requesthandler-class.initialization"></a>
 #### Initialization
 
-&emsp;&emsp;new RequestHandler(params)
-
--   **params**  *object*
-    - **server**  *OKServer*
-    - **name**    *string*  Name of the request handler.
+Objects inherit from *RequestHandler* are instantiated by the OKServer when 
+[*loadHandler*](#reference.okserver-class.methods.loadHandler) method is called.
 
 <a name="reference.requesthandler-class.properties"></a>
 #### Properties
@@ -827,14 +826,14 @@ the appropriate request handler as the only parameter of the onRequest method.
 
 -   **getRemoteIp( request )** - Shortcut to [OKServer.getRemoteIp()](#reference.okserver-class.methods.getRemoteIp).
     - **request**     *http.IncomingMessage*
-    - **Return value**: *string*
+    - **Return value**: *string* - IP address as string.
 
 -   **sendResponse( context, params )** - Sends response to the client.
     - **context**: *RequestContext* - [RequestContext](#reference.requestcontext-class) object.
     - **params**  *object*
         - **status** *number*  - The Http Status code. Default value is 200.
         - **headers** *objects* - Http response headrers. Default value is {}.
-        - **body** *string/ReadableStream* - The content for the response body. Default value is undefined (means that the response body is not included).
+        - **body** *string/stream.Readable* - The content for the response body. Default value is undefined (means that the response body is not included).
 
 -   **setResponseCookie( response, cookies, encoder )**  - See [*OKServer.setResponseCookie()*](#reference.okserver-class.methods.setResponseCookie)
 
@@ -842,7 +841,7 @@ the appropriate request handler as the only parameter of the onRequest method.
     - **extension** *string* - File extension.
     - **Return value**: *string* - MIME type.
 
--   **onRequest( context )**
+-   **onRequest( context )** - OKServer calls this method for every client request addressed to the handler of the method. onRequest should handle sending of a response to the client.
     - **context**     *RequestContext* - [RequestContext](#reference.requestcontext-class) object.
 
 -   **decodeURI( uri )**
