@@ -47,7 +47,7 @@
 	function start() {
 		const q = helper.queue();
 		q.add(
-			() => {	namespace("api").get( handleError, q.next(), { root: getApiRoot() });},
+			() => {	namespace("api").init( handleError, q.next(), { entryPoint: getApiRoot()+"/api" });},
 			(api) => { 
 				API = api;
 				API.getConfig( handleError, q.next());
@@ -56,7 +56,8 @@
 				const params = { 
 					config: CONFIG,
 					serverConfig: serverConfig,
-					root: ROOT
+					root: ROOT,
+					api: API
 				};
 				namespace("app").get( handleError, q.next(), params );
 			},

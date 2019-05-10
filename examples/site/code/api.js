@@ -3,13 +3,30 @@
  api.js
 -----------------------------------------------------------------------------------------
  (c) Olli Kekäläinen
-
  
 
+	Usage example:
+
+		let API;
+		let CONFIG;
+
+		namespace("api").get(
+			(error) => { console.log(error);},
+			start,
+			{ entryPoint: "http://www.mysite.net/api" }
+		)
+
+		function start(api) {
+			API = api;
+			// Now the whole API interface is available on the API object.
+			API.getConfig((error) => { console.log(error);}, (config) => { CONFIG = config; });
+			... etc
+	
+		}
 
 
 
- 20190329
+ 20190510
 -----------------------------------------------------------------------------------------
 */
 (() => {
@@ -18,17 +35,15 @@
 
 	const api  = namespace("api");
 
-	let API;
-
-	api.get = function( onError, onSuccess, params ) {
-		API ? onSuccess(API) : (API = new Api( onError, onSuccess, params ));
+	api.init = function( onError, onSuccess, params ) {
+		new Api( onError, (api) => { api.API = api; onSuccess(api.API);}, params );
 	};
+
 
 	class Api {
 
 		constructor( onError, onSuccess, params = {}) {
-			API = this;
-			params.root && (this.root = params.root);
+			this.entryPoint = params.entryPoint||location.protocol + "//" + location.host + "/api";
 			this.__initInterfase( onError, onSuccess );
 		}
 
@@ -50,18 +65,8 @@
 
 		}
 
-		get url() {
-			return this.__url ? this.__url :  this.root + "api";
-		}
-
-		set url(url) {
-			this.__url = url;
-			return this.url;
-		}
-
 		__request( onError, onSuccess, name, parameters ) {
 
-			const apiRoot = location.protocol + "//" + location.host + "/api";
 			const request = { name: name, parameters: parameters||{}};
 			const xhr = new XMLHttpRequest();
 
@@ -81,27 +86,10 @@
 					onError( new Error("E_PARSE: " + error.message ));
 				}
 			});
-			xhr.open( "POST", apiRoot );
+			xhr.open( "POST", this.entryPoint );
 			xhr.setRequestHeader( "X-Requested-With", "XMLHttpRequest");
 			xhr.setRequestHeader( "Content-Type", "application/json; charset=utf-8" );
 			xhr.send( JSON.stringify(request));
-		}
-
-		__request_with_jquery( onError, onSuccess, name, parameters ) {
-			let request = { name: name, parameters: parameters||{}};
-			$.ajax({
-				type: "POST",
-			  	url: this.url, 
-			  	error: (a,b,c) => { onError(c);},
-			  	data: JSON.stringify(request),
-				success: (response) => { 
-					name == "getConfig" && (this.url = response.content.apiUrl);
-					response.succeed ? onSuccess(response.content) : onError(response.error);
-				},
-				cache: false,
-				headers: {},
-				contentType: "application/json; charset=utf-8"
-			});
 		}
 	}
 
