@@ -105,10 +105,10 @@
 
 			Overwrite this in child class. Called before the actual handling of the request.
 			
-		onResponse(params) { 
+		onResponse( context, params ) { 
 			Overwrite this in child class. Called before the actual sending of the response.
 			
-			params.context 		RequestContext
+			context 			RequestContext
 			params.status		number, default: 200
 			params.headers 		objects, default: {}
 			params.body	 		string/readableStream, default: undefined
@@ -408,12 +408,10 @@ class PrimalServer {
 		// Overwrite this in child class. Will be called after the httpsServer is ready to listen.
 	}
 
-	onRequest(params) { 
-		// Overwrite this in an ancestor class. Called before the actual handling of the request.
+	onRequest(context) { 
 	}
 
-	onResponse(params) { 
-		// Overwrite this in an ancestor class. Called before the actual sending of the response.
+	onResponse( context, params ) { 
 	}
 
 	removeMimeType( ext ) {
