@@ -5,174 +5,13 @@
  (c) Olli Kekäläinen
 
 	
-  Primal Server
-
-  	Initialization 
-  		new PrimalServer(options)
-
-	Properties
-
-
-		apiEntryPoint 		string, default: "api"
-		
-		apiExtensions		array, readonly
-		
-		defaultDirectory 	string
-		
-		defaultDocument		string, default: "index.htm"
-		
-		httpServer			httpServer object, readonly 
-
-		httpsOptions		object, readonly, default: {}
-
-		httpsServer			httpsServer object, readonly 
-
-		logApiRequests 		boolean, default: false
-		
-		logFileRequests		boolean, default: false
-		
-		mimeTypes 			object, readonly, default: {
-								".css": "text/css; charset=utf-8",
-								".htm": "text/html; charset=utf-8",
-								".html": "text/html; charset=utf-8",
-								".bmp": "image/bmp",
-								".gif": "image/gif",
-								".jpeg": "image/jpeg",
-								".jpg": "image/jpeg",
-								".png": "image/png",
-								".pnz": "image/png",
-								".tif": "image/tiff",
-								".tiff": "image/tiff",
-								".pfd": "application/pdf",
-								".js": "application/javascript; charset=utf-8",
-								".json": "application/json; charset=utf-8",
-								".txt": "text/plain; charset=utf-8"
-							}
-
-		port 				number, default 0
-		
-		sslPort				number, default 0
-	
-
-	Methods
-
-		addForbiddenPath( path ) -> self
-			path 	string
-
-		addMimeType( ext, type ) -> self
-			ext 	string
-			type 	string
-
-		addPermittedPath( path ) -> self
-			ext 	string
-
-		addVirtualDirectory( params ) -> VirtualDirectory
-			params 	object {
-						name: string,
-						path: string[,
-						handlerName: string, default: "default"]
-					}
-
-		extendApi(apiExtension) -> self
-			apiExtension 	string | array(string), module name
-
-		getConfig( onError, onSuccess, context )  // called in api.getConfig
-
-		getRemoteIp( request ) -> string
-			request 	httpRequest
-
-		getVirtualDirectory( name ) -> VirtualDirectory
-			name 		string
-
-		getVirtualDirectoryPath( name ) -> string
-			name 		string
-
-		isForbidden(url) -> boolean
-		
-		isPermitted(url) -> boolean
-
-		loadHandler( module|modulename ) -> self
-
-		onHttpReady() 
-			Called when httpServer is started listening. Overwrite in child class.
-
-		onHttpsReady()
-			Called when httpsServer is started listening. Overwrite in child class.
-
-		onRequest( context )
-
-			context 	RequestContext
-
-			Overwrite this in child class. Called before the actual handling of the request.
-			
-		onResponse( context, params ) { 
-			Overwrite this in child class. Called before the actual sending of the response.
-			
-			context 			RequestContext
-			params.status		number, default: 200
-			params.headers 		objects, default: {}
-			params.body	 		string/readableStream, default: undefined
-	
-		removeMimeType(ext) -> self
-
-		setResponseCookie( response, cookie )
-
-			response 	HttpResponse
-			cookie 		array:cookie
-
-			cookie properties
-				name 			string, mandatory
-				value 			string, default: ""
-				path  			string, default: "/"
-				domain 			string
-				expires 		Date
-				expirationDays	number
-				maxAge 			number
-				httpOnly 		boolean
-				sameSite 		boolean (true: "strict", false: no sameSiteattribute) or string ("strict"/"lax")
-				secure 			boolean
-
-
-		start( onError, onSuccess )
-			onError  	function(error)
-			onSuccess 	function()
-		
-		stop( onClose )
-			onClose 	function(), Called when server is stopped listening.
-
-
-
-VirtualDirectory
-
-	Properties
-
-		name 		 	string
-		path         	string
-		handler  		Requesthandler
-		handlerName  	string
-
-
-RequestContext
-
-	Properties
-
-		cookies	 			object, 	request cookies
-		handler	 			RequestHandler
-		handlerName			string
-		path				string, full path in request URL
-		pathName	 		string
-		request				HttpRequest
-		response			HttpResponse
-		server				OKServer
-		url	 				object
-		virtualDirectory	VirtaulDirectory
-}
  
 
- 20190503
+ 
+
+ 20190513
 -----------------------------------------------------------------------------------------
 */
-
 "use strict";
 
 const http = require("http");
@@ -325,7 +164,11 @@ class PrimalServer {
 	}
 
 	addVirtualDirectory( params = {}) {
-		if (!params.path || folderExist(params.path)) {
+		if (params.path && !folderExist(params.path)) {
+			console.log( "ERROR: Failed to add virtual directory '" + (params.name||"/") + 
+				"'. Folder '" + params.path + "' does not exist." );
+		}
+		else {
 			this.virtualDirectories[params.name||"/"] = new VirtualDirectory(params);
 			return this.virtualDirectories[params.name||"/"];
 		}
