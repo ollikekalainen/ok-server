@@ -609,7 +609,7 @@ keyword.
         - **path** *string*
         - **handlerName** *string*, default: "default"
     - **return value**: [*VirtualDirectory*](#reference.virtualdirectory-class) - If the *path* 
-            parameter is included and the folder contained by the parameter does not exist, the reurn value is *undefined*.
+            parameter is included and the folder contained by the parameter does not exist, the virtual directory is not added and the return value is *undefined*.
 <a name="reference.okserver-class.methods.extendApi"></a>
 -   **extendApi(apiExtensionModule)** - Extends the API system with new api extension modules.
     - **apiExtensionModule** *string* - The name of the module or *array* of module names as string values
