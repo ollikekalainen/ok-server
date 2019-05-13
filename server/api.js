@@ -5,49 +5,10 @@
  (c) Olli Kekäläinen
 
 
- 	Exports: Object of Api class
-
-
-	Class Api
-
-		Properties:
-
-			iface 		object containing API definitions added with api.add method
-
-		Methods:
-
-			add(entry)
-
-				entry 	object {
-							name: string,
-							worker: function[,
-							parameters: {
-								<parametername(1)>: {
-									type: <string:"string"|"number"|"boolean"|"object">,
-									[mandatory: <boolean>,]
-									[default: <string|number|boolean|object>,]
-									[description: <object>]
-								},
-								...,
-								<parametername(n)>: {
-									type: <string:"string"|"number"|"boolean"|"object">,
-									[mandatory: <boolean>,]
-									[default: <string|number|boolean|object>,]
-									[description: <object>]
-								}
-
-							}][,
-							description: object]
-						}
- 
- 			extend(module)
-
- 				module	module|string
 
 
 
-
-  20190503
+  20190513
 ----------------------------------------------------------------------------------------
 */
 

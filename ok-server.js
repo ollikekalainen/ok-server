@@ -4,91 +4,11 @@
 ----------------------------------------------------------------------------------------------------
  (c) Olli Kekäläinen
 
-	okserver.createServer() -> OKServer
-	okserver.createServer( options ) -> OKServer
-
-		Options:
-
-		    accessFiltering: array, contains filter objects
-				{
-					path: string,
-					status: string ("forbidden"|"permitted")
-				}
-
-			apiEntryPoint		string, default: "api",
-			apiExtensions		array, default: []
-			defaultDirectory    string, default: __dirname + "/examples/site"
-		    defaultDocument     string, default: "index.htm"
-		    httpsOptions 		object, default: {
-		     		   					pfx: "%OKSERVER_PFX%",
-		        						passphrase: "%OKSERVER_PHRASE%"
-		    						}
-		    logApiRequests 		boolean
-		    logFileRequests 	boolean
-			mimeTypes:          object, { <extenstion1>: <type:string>, ..., <extenstionN>: <type:string> }
-									default: {
-												".css": "text/css; charset=utf-8",
-												".htm": "text/html; charset=utf-8",
-												".html": "text/html; charset=utf-8",
-												".js": "application/javascript; charset=utf-8",
-												".json": "application/json; charset=utf-8",
-												".txt": "text/plain; charset=utf-8"
-											}
-			optionsFile         string, default: __dirname + "options.js"
-			port                number, default: 3002
-			pulseFolder 		string, if not set, pulse does not start
-			pulseInterval		number, default: 1000
-			serverClass 		default: OKServer
-			sslPort             number, default: 0
-		    virtualDirectories  object, {
-		        				   			<name>: { "path": <path:string>, handler: <handlername:string> }
-		    							}
 
 
-		Command line parameters
-
-			/initServerOptions
-
-		OKServer
-
-			Properties:
-
-			Methods:
-
-				onGetConfig( onError, onSuccess, context )
-
-				start( onError, onSuccess )
-					onError
-					onSuccess
-
-				stop( onStop )
 
 
-	okserver.defineApiRequest({ 
-		name: <string>, 
-		parameters: {
-			<parametername(1)>: {
-				type: <string:"string"|"number"|"boolean"|"object">,
-				[mandatory: <boolean>,]
-				[default: <string|number|boolean|object>]
-			},
-			...,
-			<parametername(n)>: {
-				type: <string:"string"|"number"|"boolean"|"object">,
-				[mandatory: <boolean>,]
-				[default: <string|number|boolean|object>]
-			}
-
-		},
-		worker: <function>
-	});
-
-	okserver.defaultOptions     object
-	okserver.OKServer 			class
-	okserver.RequestHandler 	class
-
-
- 20190503
+ 20190513
 ----------------------------------------------------------------------------------------------------
 */
 "use strict";

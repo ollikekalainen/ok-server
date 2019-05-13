@@ -5,61 +5,10 @@
  (c) Olli Kekäläinen
 
  
- 	Module:
-		requesthandler.getHandler(name) -> RequestHandler
-		requesthandler.RequestHandler -> class RequestHandler
-	
-	class RequestHandler
-
-		Initialization:
-			new RequestHandler(params)
-				params  object
-					server 	PrimalServer
-					name 	string
-
-		Properties:
-
-			options -> object
-			server -> PrimalServer
-
-		Methods: 
-
-			getRemoteIp( httpRequest ) -> string
-
-			sendResponse( params )
-				params.response 	HttpResponse
-				params.status		number, default: 200
-				params.headers 		objects, default: {}
-				params.body	 		string/readableStream, default ""
-
-			setCookie( response, array:Cookie )
-				Cookie properties:
-					name 		string, mandatory
-					value 		string, default: ""
-					path  		string, default: "/"
-					domain 		string
-					expires 	Date
-					maxAge 		number
-					httpOnly 	boolean
-					secure 		boolean
-
-			solveMimeName(extension) -> ContentType string
-
-			onRequest(params)
-				params:
-				   request: httpRequest object
-				   response: httpResponse object
-				   virtualDirectory: VirtualDirectory object
-				   path: string
-	               url: Url object
-	               cookies: object
-			
-			decodeURI(uri) -> string
- 
-			_register( handlerName )
 
 
- 20190503
+
+ 20190513
 -----------------------------------------------------------------------------------------
 */
 
