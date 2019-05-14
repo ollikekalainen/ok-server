@@ -3,8 +3,8 @@
 # ok-server
 
 **ok-server** is simple HTTP server implemented with node.js HttpSever. It can be extended by adding 
-it new request handlers for the desired endpoints. It includes two default request handlers. One for
-file requests and one for the API requests. It's API request handler is easily extendable. 
+it new request handlers for the desired endpoints. It includes two default request handlers, one for
+the file requests and one for the API requests. It's API request handler is easily extendable. 
 File handler supports partial file requests in addition to normal file transfer. 
 
 
@@ -539,7 +539,9 @@ keyword.
 -   **defaultDirectory**    *string* - The full folder name of the file request default directory for situations where the URL does not contain a path. Default value is __dirname + "/examples/site".
 -   **defaultDocument**     *string* - Name of the default HTML document. Default value is "index.htm".
 -   **httpsOptions**        *object* - Contains options needed in creating HttpsServer. Can be either **{ pfx**: *string*, **passphrase**: *string* **}** or **{ key**: *string*, **cert**: *string* **}**.
-        Default value is **{ pfx**: "%OKSERVER_PFX%", **passphrase**: "%OKSERVER_PHRASE%" **}**.
+        Default value is **{ pfx**: "%OKSERVER_PFX%", **passphrase**: "%OKSERVER_PHRASE%" **}**. 
+        The value of the *passphrase* property may include - instead of a 
+        password - the name of the file that contains the actual password.
 -   **logApiRequests**      *boolean* - Indicates whether the API requests are written to the log file. Default value is false.
 -   **logFileRequests**     *boolean* - Indicates whether the file requests are written to the log file. Default value is false.
 -   **mimeTypes**           *object* - Includes MIME types supported by the server as the following object.
