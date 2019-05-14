@@ -63,7 +63,6 @@ File handler supports partial file requests in addition to normal file transfer.
         * [Initialization](#reference.requesthandler-class.initialization)
         * [Properties](#reference.requesthandler-class.properties)
         * [Methods](#reference.requesthandler-class.methods)
-* [Examples](#examples)
 
 
 
@@ -850,10 +849,4 @@ Objects inherit from *RequestHandler* are instantiated by the OKServer when
     - **uri**     *string*  - URI string.
     - **Return value**: *string* - Decoded URI string.
 
-
-\
-<a name="examples"></a>
-## Examples
-
-later...
 
