@@ -10,7 +10,7 @@
 		let API;
 		let CONFIG;
 
-		namespace("api").get(
+		namespace("api").init(
 			(error) => { console.log(error);},
 			start,
 			{ entryPoint: "http://www.mysite.net/api" }
