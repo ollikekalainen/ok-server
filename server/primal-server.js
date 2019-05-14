@@ -164,7 +164,7 @@ class PrimalServer {
 	}
 
 	addVirtualDirectory( params = {}) {
-		if (params.path && !folderExist(params.path)) {
+		if (params.path && !__exists(params.path)) {
 			console.log( "ERROR: Failed to add virtual directory '" + (params.name||"/") + 
 				"'. Folder '" + params.path + "' does not exist." );
 		}
@@ -278,7 +278,7 @@ class PrimalServer {
 		const onError = params.onError||(()=>{});
 		const onSuccess = params.onSuccess||(()=>{});
 
-		if (!folderExist( this.defaultDirectory)) {
+		if (!__exists( this.defaultDirectory)) {
 			onError( new Error("E_INVALIDDEFAULTDIRECTORY: " + this.defaultDirectory ));
 			return;
 		}
@@ -329,7 +329,9 @@ class PrimalServer {
 				const options = {};
 			    if (this.httpsOptions.pfx) {
 			    	options.pfx = fs.readFileSync(this.httpsOptions.pfx);
-			    	options.passphrase = this.httpsOptions.passphrase;
+			    	options.passphrase = __exists(this.httpsOptions.passphrase) 
+			    		? fs.readFileSync(this.httpsOptions.passphrase)
+			    		: this.httpsOptions.passphrase;
 			    }
 			    else if (this.httpsOptions.key && this.httpsOptions.cert) {
 			    	options.key = fs.readFileSync(this.httpsOptions.key);
@@ -610,7 +612,7 @@ function stringifyCookie( cookie, encoder = encodeURIComponent )	{
 	return cookieString;
 }
 
-function folderExist(folder) {
+function __exists(folder) {
 	let exists = true;
 	try {
 		fs.statSync(folder);
