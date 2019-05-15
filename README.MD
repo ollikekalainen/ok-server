@@ -15,14 +15,10 @@ File handler supports partial file requests in addition to normal file transfer.
 
 * [Installation](#installation)
 * [Usage](#usage)
-    * [Module](#usage.module)
-        * [Functions](#usage.module.functions)
-        * [Properties](#usage.module.properties)
-    * [Starting server](#usage.starting-server)
-        * [Initializing with createSever](#usage.starting-server.initializing-with-createsever)
-        * [Extendeding server class](#usage.starting-server.extendeding-server-class)
-        * [Initializing with extended server class](#usage.starting-server.initializing-with-extended-server-class)
-        * [Creating initial options file](#usage.starting-server.creating-initial-options-file)
+    * [Initializing with createSever](#usage.initializing-with-createsever)
+    * [Extendeding server class](#usage.extendeding-server-class)
+    * [Initializing with extended server class](#usage.initializing-with-extended-server-class)
+    * [Creating initial options file](#usage.creating-initial-options-file)
 * [Request-Handlers](#request-handlers)
     * [Implementing and utilizing a new request handler](#request-handlers.implementing-and-utilizing-a-new-request-handler)
     * [Request handler prototype](#request-handlers.request-handler-prototype)
@@ -77,14 +73,11 @@ npm install ok-server
 <a name="usage"></a>
 ## Usage
 
-<a name="usage.starting-server"></a>
-### Starting server
-
-OKServer object can be initailized with [*createServer*](#reference.module-ok-server.methods) function of ok-server module or instantiating
-it with new keyword using ok-server property [*OKServer*](#reference.module-ok-server.properties). Both methods enable extending of the OKServer 
+OKServer object can be initialized with [*createServer*](#reference.module-ok-server.methods) function of ok-server module or instantiating
+it with *new* keyword using ok-server property [*OKServer*](#reference.module-ok-server.properties). Both methods enable extending of the OKServer 
 class. Extending is preferable because it enables the use of event methods of the class.
 
-<a name="usage.starting-server.initializing-with-createsever"></a>
+<a name="usage.initializing-with-createsever"></a>
 #### Initializing with createSever
 
      
@@ -97,7 +90,7 @@ class. Extending is preferable because it enables the use of event methods of th
      
     
 
-<a name="usage.starting-server.extendeding-server-class"></a>
+<a name="usage.extendeding-server-class"></a>
 #### Extendeding server class
 
      
@@ -115,7 +108,7 @@ class. Extending is preferable because it enables the use of event methods of th
       
         
 
-<a name="usage.starting-server.initializing-with-extended-server-class"></a>
+<a name="usage.initializing-with-extended-server-class"></a>
 #### Initializing with extended server class
 
      
@@ -158,7 +151,7 @@ class. Extending is preferable because it enables the use of event methods of th
 
 
 
-<a name="usage.starting-server.creating-initial-options-file"></a>
+<a name="usage.creating-initial-options-file"></a>
 #### Creating initial options file
 
 Initial options file can be created by executing following source with command line flag
