@@ -968,7 +968,7 @@ class Cmds {
 	exec( onError ) {
 		let files = [];
 		helper.folderEvalEx( 
-			this.onError,
+			onError,
 			() =>  { 
 				let q = helper.queue();
 				files.forEach((file) => { 
