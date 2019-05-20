@@ -9,7 +9,7 @@
 
  
 
- 20190513
+ 20190520
 -----------------------------------------------------------------------------------------
 */
 "use strict";
@@ -164,15 +164,17 @@ class PrimalServer {
 	}
 
 	addVirtualDirectory( params = {}) {
+		params.name = params.name||"/";
 		if (params.path && !__exists(params.path)) {
-			console.log( "ERROR: Failed to add virtual directory '" + (params.name||"/") + 
-				"'. Folder '" + params.path + "' does not exist." );
+			return "E_PATHNOTFOUND";
 		}
 		else {
-			this.virtualDirectories[params.name||"/"] = new VirtualDirectory(params);
-			return this.virtualDirectories[params.name||"/"];
+			this.virtualDirectories[params.name] = new VirtualDirectory(params);
+			if (!this.virtualDirectories[params.name].handler) {
+				return "E_UNKNOWNHANDLER";
+			}
 		}
-		return;
+		return "OK";
 	}
 
 	extendApi(apiExtension) {
@@ -280,7 +282,7 @@ class PrimalServer {
 
 		if (!__exists( this.defaultDirectory)) {
 			onError( new Error("E_INVALIDDEFAULTDIRECTORY: " + this.defaultDirectory ));
-			return;
+			return this;
 		}
 
 		this._resetBase();
@@ -288,14 +290,18 @@ class PrimalServer {
 
 		if (typeof this.options.virtualDirectories == "object") {
 			for (let name in this.options.virtualDirectories) {
-				let v = this.addVirtualDirectory({ 
+				let success = this.addVirtualDirectory({ 
 					name: name, 
 					path: this.options.virtualDirectories[name].path, 
-					handlerName: this.options.virtualDirectories[name].handlerName||"default"
+					handlerName: this.options.virtualDirectories[name].handler||"default"
 				});
-				if (!v) {
+				if (success == "E_PATHNOTFOUND") {
 					onError( new Error("E_INVALIDVIRTUALPATH: " + this.options.virtualDirectories[name].path));
-					return;
+					return this;
+				}
+				if (success == "E_UNKNOWNHANDLER") {
+					onError( new Error("E_UNKNOWNHANDLER: " + this.options.virtualDirectories[name].handler));
+					return this;
 				}
 			}
 		}
@@ -439,10 +445,11 @@ class PrimalServer {
 	}
 	
 	_resetBase() {
-		this.base = this.addVirtualDirectory({ 
+		this.addVirtualDirectory({ 
 			path: this.defaultDirectory, 
 			handlerName: "default" 
 		});
+		this.base = this.getVirtualDirectory("/");
 	}
 
 	_sanitize(url) {
