@@ -602,8 +602,11 @@ keyword.
         - **name** *string*
         - **path** *string*
         - **handlerName** *string*, default: "default"
-    - **return value**: [*VirtualDirectory*](#reference.virtualdirectory-class) - If the *path* 
-            parameter is included and the folder contained by the parameter does not exist, the virtual directory is not added and the return value is *undefined*.
+    - **return value**: *string* - Return value is a string that indicates the success of the action. In case of success, the value is "OK".
+            The value E_UNKNOWNHANDLER indicates that the *handlerName* parameter refers to a non-loaded handler.
+            The value E_PATHNOTFOUND indicates - when the *path* parameter is included - the folder to which the path is assigned does not exist.
+            In both situations, the server is not started.
+
 <a name="reference.okserver-class.methods.extendApi"></a>
 -   **extendApi(apiExtensionModule)** - Extends the API system with new api extension modules.
     - **apiExtensionModule** *string* - The name of the module or *array* of module names as string values
@@ -681,13 +684,14 @@ Provides an opportunity to modify API specifications, for example, to complete a
 
 -   **onRequest(context)** - An event method that is triggered before the actual handling of the request. Overwrite this in child class.
     - **context**     *RequestContext* - The [*RequestContext*](#reference.requestcontext-class) object.
-    
+
 -   **onResponse( context, params )** - An event method that is triggered the actual sending of the response. Overwrite this in child class.
     - **context** *RequestContext* - The [*RequestContext*](#reference.requestcontext-class) object.
     - **params.status** *number* - The Http Status code.
     - **params.headers** *objects*, Http response headrers.
     - **params.body** *string/stream.Readable* - The content for the response body.
-       
+
+
 
 <a name="reference.okserver-class.properties"></a>
 #### Properties
@@ -704,7 +708,7 @@ Provides an opportunity to modify API specifications, for example, to complete a
 -   **mimeTypes**           *object* (readonly) - Includes MIME types the server is supporting.
 -   **port**                *number* - *http.Server* port number .
 -   **sslPort**             *number* - *https.Server* port number.
-    
+
 
 
 <a name="reference.virtualdirectory-class"></a>
