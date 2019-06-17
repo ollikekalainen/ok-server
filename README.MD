@@ -784,7 +784,7 @@ the appropriate request handler as the only parameter of the onRequest method.
 -   **handler**       *RequestHandler* - Request Handler object.
 -   **handlerName**   *string* - Name of the Request Handler serving the request.
 -   **path**          *string* - The path in request URL.
--   **pathName**      *string* - The pathname in request URL.
+-   **pathName**      *string* - The path in request URL.
 -   **physicalPath**  *string* - The full physical path of the virtual directory to which the request URL indicates.
 -   **request**       *http.IncomingMessage* - Request as the node.js IncomingMessage object.
 -   **response**      *http.ServerResponse* - Response as the node.js ServerResponse object.
