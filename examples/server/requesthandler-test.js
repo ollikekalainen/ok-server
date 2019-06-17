@@ -10,7 +10,7 @@
 
  
 
- 20190329
+ 20190617
 -----------------------------------------------------------------------------------------
 */
 
@@ -29,7 +29,7 @@ class TestRequestHandler extends RequestHandler {
 
 	onRequest( context ) {
 
-		const filename = decodeURI( path.join( context.virtualDirectory.path, context.path ));
+		const filename = context.physicalPath;
 
 		this.options.logFileRequests 
 			&& console.log( this.getRemoteIp(context.request) + " " + context.request.url + " -> " + filename );

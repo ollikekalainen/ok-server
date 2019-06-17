@@ -2,7 +2,7 @@
 
 # ok-server
 
-**ok-server** is simple HTTP server implemented with node.js HttpSever. It can be extended by adding 
+**ok-server** is simple web server implemented with node.js HttpSever. It can be extended by adding 
 it new request handlers for the desired endpoints. It includes two default request handlers, one for
 the file requests and one for the API requests. It's API request handler is easily extendable. 
 File handler supports partial file requests in addition to normal file transfer. 
@@ -142,7 +142,7 @@ class. Extending is preferable because it enables the use of event methods of th
         }
     }
 
-    const server = MyServer({
+    const server = new MyServer({
         logFolder: __dirname + "/log",
         pulseFolder: __dirname,
         optionsFile: __dirname + "/my-server.json"
@@ -526,9 +526,10 @@ keyword.
     - filter:
         - **path** *string*
         - **status** *string* ("forbidden"|"permitted")
--   **apiEntryPoint**       *string* - Name of the virtual folder that serves as the entry point for the API requests. Default value is "api".
+-   **apiEntryPoint**       *string* - Name of the virtual directory that serves as the entry point for the API requests. Default value is "api".
 -   **apiExtensions**       *array* - Full names of the API extension mofule files to be loaded before the server starts. Default is [].
--   **defaultDirectory**    *string* - The full folder name of the file request default directory for situations where the URL does not contain a path. Default value is __dirname + "/examples/site".
+-   **defaultDirectory**    *string* - The full path of the root virtual directory. Default value is __dirname + "/examples/site".
+-   **defaultDirectoryName** *string* - The name of the default directory that is set as the name for the root virtual directory. The default is "/".    
 -   **defaultDocument**     *string* - Name of the default HTML document. Default value is "index.htm".
 -   **httpsOptions**        *object* - Contains options needed in creating HttpsServer. Can be either **{ pfx**: *string*, **passphrase**: *string* **}** or **{ key**: *string*, **cert**: *string* **}**.
         Default value is **{ pfx**: "%OKSERVER_PFX%", **passphrase**: "%OKSERVER_PHRASE%" **}**. 
@@ -575,9 +576,9 @@ keyword.
 -   **sslPort**             *number*  - Port number for the *https.Server*. If set as 0, the server is not instantiated. Default value is 3002.
 -   **virtualDirectories**  *object*,\
     &emsp;&emsp;**{**\
-    &emsp;&emsp;&emsp;&emsp;**&lt;name(1)&gt;**: **{ path**: *string*, **handler**: *string* **}**,\
+    &emsp;&emsp;&emsp;&emsp;**&lt;name(1)&gt;**: **{ path**: *string*, **defaultDocument**: *string*, **handler**: *string* **}**,\
     &emsp;&emsp;&emsp;&emsp;...,\
-    &emsp;&emsp;&emsp;&emsp;**&lt;name(n)&gt;**: **{ path**: *string*, **handler**: *string* **}**\
+    &emsp;&emsp;&emsp;&emsp;**&lt;name(n)&gt;**: **{ path**: *string*, **defaultDocument**: *string*, **handler**: *string* **}**\
     &emsp;&emsp;**}**
 
 
@@ -601,11 +602,13 @@ keyword.
     - **params** *object*
         - **name** *string*
         - **path** *string*
-        - **handlerName** *string*, default: "default"
+        - **defaultDocument** *string* - Default value is *OkServer.defaultDocument*.
+        - **handlerName** *string* - Default value is "default".
+        - **parent** *VirtualDirectory* - Default value is the base virtual directory creatad by the server according by the *defaultDirectory* and the *defaultDirecotyName* option values.
     - **return value**: *string* - Return value is a string that indicates the success of the action. In case of success, the value is "OK".
             The value E_UNKNOWNHANDLER indicates that the *handlerName* parameter refers to a non-loaded handler.
             The value E_PATHNOTFOUND indicates - when the *path* parameter is included - the folder to which the path is assigned does not exist.
-            In both situations, the server is not started.
+            The value E_ALREADYEXISTS indicates that the virtual directory already exists.
 
 <a name="reference.okserver-class.methods.extendApi"></a>
 -   **extendApi(apiExtensionModule)** - Extends the API system with new api extension modules.
@@ -617,18 +620,20 @@ keyword.
     - **return value**: *string*
 
 <a name="reference.okserver-class.methods.getVirtualDirectory"></a>
--   **getVirtualDirectory(name)** - Returns a virtual directory by it's name.
-    - **name** *string*
+-   **getVirtualDirectory( name, parent )** - Returns a virtual directory by it's full name.
+    - **fullname** *string* - A string value representing the name of the directory as it is written in the URL address.
+    - **parent** *VirtualDirectory* - The parent directory of the virtual directory to be retrieved. Default is the root virtual directory.
     - **return value**: [*VirtualDirectory*](#reference.virtualdirectory-class)
 
--   **getVirtualDirectoryPath( name )** - Returns the path of the virtual directory by the name of the directory.
-    - **name** *string*
+-   **getVirtualDirectoryPath( name, parent )** - Returns the path of the virtual directory by the name of the directory.
+    - **name** *string* - A string value representing the name of the directory as it is written in the URL address.
+    - **parent** *VirtualDirectory* - The parent directory of the virtual directory to be retrieved. Default is the root virtual directory.
     - **return value**: *string*
 
--   **isForbidden(url) -> boolean** - Indicates whether the url points to a forbidden path.
+-   **isForbidden(url) -> boolean** - Indicates whether the url points to a forbidden path. **This method is is depracated**
     - **return value**: *boolean*
     
--   **isPermitted(url) -> boolean** - Indicates whether the url points to a permitted path.
+-   **isPermitted(url) -> boolean** - Indicates whether the url points to a permitted path. **This method is is depracated**
     - **return value**: *boolean*
 <a name="reference.okserver-class.methods.loadHandler"></a>
 -   **loadHandler( module|modulename )** - Loads a new request handler module
@@ -698,7 +703,8 @@ Provides an opportunity to modify API specifications, for example, to complete a
 
 -   **apiEntryPoint**       *string* - API entry point. Default is "api".
 -   **apiExtensions**       *array* (readonly) - Full names of the API extension mofule files to be loaded before the server starts. 
--   **defaultDirectory**    *string* - Full folder name of the default directory.
+-   **defaultDirectory**    *string* - Full path of the root virtual directory.
+-   **defaultDirectoryName** *string* - Name of the root virtual directory.
 -   **defaultDocument**     *string* - Default document.
 -   **httpServer**          *http.Server* (readonly) - Node.js *http.Server* object. Property is undefined if the *port* option is set as 0.
 -   **httpsOptions**        *object* (readonly) - Server options as object.
@@ -707,6 +713,8 @@ Provides an opportunity to modify API specifications, for example, to complete a
 -   **logFileRequests**     *boolean* - Indicates whether file requests are written in to the log file.
 -   **mimeTypes**           *object* (readonly) - Includes MIME types the server is supporting.
 -   **port**                *number* - *http.Server* port number .
+<a name="reference.okserver-class.properties.root"></a>
+-   **root**                *VirtualDirectory* (readonly) - Root virtual directory created based on *defaultDirectory* and *defaultDirectoryName* properties.
 -   **sslPort**             *number* - *https.Server* port number.
 
 
@@ -718,15 +726,19 @@ Provides an opportunity to modify API specifications, for example, to complete a
 #### Initialization
 
 VirtualDirectory objects are initialized by the OKServer and are accessible with
-the method [*getVirtaulDirectory*](#reference.okserver-class.methods.getVirtualDirectory).
+the method [*getVirtaulDirectory*](#reference.okserver-class.methods.getVirtualDirectory) or - in 
+case of the root virtual directory - with the property [*root*](#reference.okserver-class.properties.root).
 
 <a name="reference.virtualdirectory-class.properties"></a>
 #### Properties
  
--   **name**        *string* - Name of the virtual directory.
--   **path**        *string* - Virtual directory path.
+-   **defaultDocument** *string* - Name of the default document.
+-   **fullname**    *string* - The full name of the directory as it is written in the URL address.
 -   **handler**     *RequestHandler* - The [request handler](#reference.requesthandler-class) associated to the virtual directory.
 -   **handlerName** *string* - The name of the handler associated to the virtual directory.
+-   **name**        *string* - Name of the virtual directory.
+-   **path**        *string* - Virtual directory path.
+-   **parent**      *VirtualDirectory* - Parent virtual directory.
 
            
 
@@ -771,8 +783,9 @@ the appropriate request handler as the only parameter of the onRequest method.
 -   **cookies**       *object* - Requests cookies.
 -   **handler**       *RequestHandler* - Request Handler object.
 -   **handlerName**   *string* - Name of the Request Handler serving the request.
--   **path**          *string* - The full path in request URL.
+-   **path**          *string* - The path in request URL.
 -   **pathName**      *string* - The pathname in request URL.
+-   **physicalPath**  *string* - The full physical path of the virtual directory to which the request URL indicates.
 -   **request**       *http.IncomingMessage* - Request as the node.js IncomingMessage object.
 -   **response**      *http.ServerResponse* - Response as the node.js ServerResponse object.
 -   **server**        *OKServer* - The instance of the OKServer.
@@ -782,6 +795,10 @@ the appropriate request handler as the only parameter of the onRequest method.
 
 <a name="reference.requestcontext-class.methods"></a>
 #### Methods
+
+-   **isForbidden() -> boolean** - Indicates whether the path which the http request is pointing to is forbidden.
+        This method is automaticly called by the server.
+    - **return value**: *boolean*
 
 -   **setResponseCookie( cookie, encoder )** - Adds a cookie to the Http response by adding a Set-Cookie header.
     - **cookie** *object|array* - See [*OKServer.setResponseCookie()*](#reference.okserver-class.methods.setResponseCookie.cookie)

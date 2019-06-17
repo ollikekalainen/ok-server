@@ -10,7 +10,7 @@
 
  
 
-  20190503
+  20190617
 ----------------------------------------------------------------------------------------
 */
 
@@ -29,36 +29,71 @@ class FileRequestHandler extends RequestHandler {
 
 	onRequest( context ) {
 
-		const vname =  context.virtualDirectory.name;
-		const vpath =  context.virtualDirectory.path;
-		const offset = vname.length+Number(vname!=="/");
-		const filename = __decodeURI( path.join( vpath, context.path.substr( offset )));
-
 		this.options.logFileRequests 
-			&& console.log( this.getRemoteIp(context.request) + " " + context.request.url + " -> " + filename );
+			&& console.log( this.getRemoteIp(context.request) + " " + context.request.url + " -> " + context.physicalPath );
 
 		if (context.request.method != 'GET') {
 			this.sendResponse( context, { status: 405, headers: { 'Allow': 'GET' }});
 			return;
 		}
 
-		this.supplyFile( filename, context );
+		this.supplyFile( context );
 	}
 
-	supplyFile( filename, context ) {
+	supplyFile( context ) {
 
-		const contentType = this.solveMimeName(path.extname(filename));
-		if (!contentType || !fs.existsSync(filename)) {
+		const responseHeaders = {};
+		const request = context.request;
+		let filename = context.physicalPath;
+
+		if (!fs.existsSync(filename)) {
 			this.sendResponse( context, { status: 404 });
 			return;
 		}
-		const responseHeaders = {};
-		const stat = fs.statSync(filename);
-		if (stat.isDirectory()) {
-			this.sendResponse( context, { status: 403 });
+
+		if (context.pathName[context.pathName.length-1] == "/") {
+			const stat = fs.statSync( filename[filename.length-1] == path.sep 
+				? filename.substr( 0, filename.length-1 ) 
+				: filename 
+			);
+			if (stat.isDirectory()) {
+				if (context.virtualDirectory.defaultDocument) {
+					// filename += context.virtualDirectory.defaultDocument;
+					filename = path.join( filename, context.virtualDirectory.defaultDocument );
+					if (!fs.existsSync(filename)) {
+						this.sendResponse( context, { status: 403.14 });
+						return;
+					}
+				}
+				else {
+					this.sendResponse( context, { status: 403.14 });
+					return;
+				}
+			}
+			else {
+				this.sendResponse( context, { status: 404 });
+				return;
+			}
+		}
+		else {
+			const stat = fs.statSync(filename);
+			const protocol = (request.connection && request.connection.encrypted) ? "https" : "http";
+			if (stat.isDirectory()) {
+				this.sendResponse( context, { 
+					headers: { Location: protocol + "://" + request.headers.host + request.url + "/" }, 
+					status: 301 
+				});
+				return;
+			}
+		}
+
+		const contentType = this.solveMimeName(path.extname(filename));
+		if (!contentType) {
+			this.sendResponse( context, { status: 404.3 });
 			return;
 		}
 
+		const stat = fs.statSync(filename);
 		const rangeRequest = this._readRangeHeader( context.request.headers["range"], stat.size );
 		if (!rangeRequest) {
 			responseHeaders["Content-Type"] = contentType;
@@ -126,6 +161,3 @@ class FileRequestHandler extends RequestHandler {
 
 module.exports = FileRequestHandler;
 
-function __decodeURI(uri) {
-	return decodeURI(uri.replace( /%23/g, "#" ));
-}

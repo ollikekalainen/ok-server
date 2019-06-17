@@ -9,7 +9,7 @@
 
  
 
- 20190520
+ 20190617
 -----------------------------------------------------------------------------------------
 */
 "use strict";
@@ -24,7 +24,6 @@ class PrimalServer {
 		this.forbiddenPaths = [];
 		this.permittedPaths = [];
 		this._servers = { http: undefined, https: undefined };
-		this.base = undefined;
 		this.options = options;
 		this._mimeTypes = Object.assign({
 			".css": "text/css; charset=utf-8",
@@ -70,7 +69,19 @@ class PrimalServer {
 
 	set defaultDirectory(value) {
 		this.options.defaultDirectory = value;
-		this._resetBase();
+		this._resetRoot();
+		return value;
+	}
+
+	get defaultDirectoryName() {
+		return this.options.defaultDirectoryName||"/";
+	}
+
+	set defaultDirectoryName(value) {
+		if (value !== this.options.defaultDirectoryName) {
+			this.options.defaultDirectoryName = value;
+			this._resetRoot();
+		}
 		return value;
 	}
 
@@ -129,6 +140,15 @@ class PrimalServer {
 		return value;
 	}
 
+	get root() {
+		for (let fullname in this.virtualDirectories) {
+			if (this.virtualDirectories[fullname].isRoot()) {
+				return this.virtualDirectories[fullname];
+			}
+		}
+		return;
+	}
+
 	get sslPort() {
 		return this.options.sslPort||0;
 	}
@@ -139,8 +159,9 @@ class PrimalServer {
 	}
 
 	addForbiddenPath( path ) {
-		this.forbiddenPaths.indexOf(path.toLowerCase()) < 0 
-			|| this.forbiddenPaths.push(path.toLowerCase());
+		const MS = require("path").sep == "\\";
+		MS && (path = path.toLowerCase());
+		this.forbiddenPaths.indexOf(path) >= 0 || this.forbiddenPaths.push(path);
 		return this;
 	}
 
@@ -158,8 +179,9 @@ class PrimalServer {
 	}
 
 	addPermittedPath( path ) {
-		this.permittedPaths.indexOf(path.toLowerCase()) < 0 
-			|| this.permittedPaths.push(path.toLowerCase());
+		const MS = require("path").sep == "\\";
+		MS && (path = path.toLowerCase());
+		this.permittedPaths.indexOf(path) >= 0 || this.permittedPaths.push(path);
 		return this;
 	}
 
@@ -168,14 +190,20 @@ class PrimalServer {
 		if (params.path && !__exists(params.path)) {
 			return "E_PATHNOTFOUND";
 		}
+		else if (typeof params.parent == "object" && this.getVirtualDirectory( params.name, params.parent )) {
+			return "E_ALREADYEXISTS";
+		}
 		else {
-			this.virtualDirectories[params.name] = new VirtualDirectory(params);
-			if (!this.virtualDirectories[params.name].handler) {
+			params.server = this;
+			params.defaultDocument = params.defaultDocument||this.defaultDocument; 
+			const v = new VirtualDirectory(params);
+			if (!v.handler) {
 				return "E_UNKNOWNHANDLER";
 			}
 		}
 		return "OK";
 	}
+
 
 	extendApi(apiExtension) {
 		require( "./api" ).extend(apiExtension);
@@ -201,29 +229,24 @@ class PrimalServer {
 	    return ip == "1" ? "127.0.0.1" : ip;
 	}
 
-	getVirtualDirectory( name ) {
-		return this.virtualDirectories[name];
+	getVirtualDirectory( name, parent ) {
+		const fullname = this._solveVDNamePar( name, parent );
+		return this.virtualDirectories[fullname];
 	}
 
-	getVirtualDirectoryPath( name ) {
-		return this.virtualDirectories[name] ? this.virtualDirectories[name].path : undefined;
+	getVirtualDirectoryPath( name, parent ) {
+		const fullname = this._solveVDNamePar( name, parent );
+		return this.virtualDirectories[fullname] ? this.virtualDirectories[fullname].path : undefined;
 	}
 
 	isForbidden(url) {
-		if (!this.isPermitted(url)) {
-			let path = require("path").resolve( this.defaultDirectory + url ).toLowerCase();
-			return !!this.forbiddenPaths.find((forbiddenpath) => { 
-				return path.substr( 0, forbiddenpath.length ) == forbiddenpath;
-			});
-		}
+		console.log( "**** Method Server.isForbidden() is deprecated ****" );
 		return false;
 	}
 
 	isPermitted(url) {
-		let path = require("path").resolve( this.defaultDirectory + url ).toLowerCase();
-		return !!this.permittedPaths.find((permittedpath) => { 
-			return path.substr( 0, permittedpath.length ) == permittedpath;
-		});
+		console.log( "**** Method Server.isPermitted() is deprecated ****" );
+		return true;
 	}
 
 	loadHandler( _module ) {
@@ -276,94 +299,101 @@ class PrimalServer {
 	}
 
 	start( params={}) {
+		try {
+			const onError = params.onError||(()=>{});
+			const onSuccess = params.onSuccess||(()=>{});
 
-		const onError = params.onError||(()=>{});
-		const onSuccess = params.onSuccess||(()=>{});
-
-		if (!__exists( this.defaultDirectory)) {
-			onError( new Error("E_INVALIDDEFAULTDIRECTORY: " + this.defaultDirectory ));
-			return this;
-		}
-
-		this._resetBase();
-		this._resetApiRequestHandler();
-
-		if (typeof this.options.virtualDirectories == "object") {
-			for (let name in this.options.virtualDirectories) {
-				let success = this.addVirtualDirectory({ 
-					name: name, 
-					path: this.options.virtualDirectories[name].path, 
-					handlerName: this.options.virtualDirectories[name].handler||"default"
-				});
-				if (success == "E_PATHNOTFOUND") {
-					onError( new Error("E_INVALIDVIRTUALPATH: " + this.options.virtualDirectories[name].path));
-					return this;
-				}
-				if (success == "E_UNKNOWNHANDLER") {
-					onError( new Error("E_UNKNOWNHANDLER: " + this.options.virtualDirectories[name].handler));
-					return this;
-				}
+			if (!__exists( this.defaultDirectory)) {
+				onError( new Error("E_INVALIDDEFAULTDIRECTORY: " + this.defaultDirectory ));
+				return this;
 			}
-		}
 
-		this.addForbiddenPath( __dirname );
-		this._createAccessFilteringRules();
+			this._resetRoot();
+			this._resetApiRequestHandler();
 
-		if (this.port || this.sslPort) {
-			const readines = { isReady: () => {
-				return (!this.port*this.sslPort) || (readines.http && readines.https );
-			}};
-			if (this.port) {
-				try {
-					this._servers.http = http.createServer(( request, response ) => { 
-						this._onRequest( request, response );
-					}).on( "error", (error) => { this._handleStartError( onError, error );}
-					).on( "listening", () => { 
-						readines.http = true; 
-						this.onHttpReady();
-						readines.isReady() && onSuccess();
+			if (typeof this.options.virtualDirectories == "object") {
+				for (let name in this.options.virtualDirectories) {
+					let success = this.addVirtualDirectory({ 
+						name: name, 
+						path: this.options.virtualDirectories[name].path, 
+						defaultDocument: this.options.virtualDirectories[name].defaultDocument,
+						handlerName: this.options.virtualDirectories[name].handler||"default"
 					});
-					this.httpServer.listen( this.port );
-					
-				}
-				catch (error) {
-					onError(error);
-				}
-			}
-			if (this.sslPort) {
-				const https = require('https');
-				const options = {};
-			    if (this.httpsOptions.pfx) {
-			    	options.pfx = fs.readFileSync(this.httpsOptions.pfx);
-			    	options.passphrase = __exists(this.httpsOptions.passphrase) 
-			    		? fs.readFileSync(this.httpsOptions.passphrase)
-			    		: this.httpsOptions.passphrase;
-			    }
-			    else if (this.httpsOptions.key && this.httpsOptions.cert) {
-			    	options.key = fs.readFileSync(this.httpsOptions.key);
-			    	options.cert = fs.readFileSync(this.httpsOptions.cert);
-			    }
-			    else {
-					onError( new Error("E_INVALIDHTTPSOPTIONS"));
-			    }
-				try {
-					this._servers.https = https.createServer( options, (request, response) => {
-						this._onRequest( request, response );
-					}).on( "error", (error) => { this._handleStartError( onError, error, true );}
-					).on( "listening", () => { 
-						readines.https = true; 
-						this.onHttpsReady();
-						readines.isReady() && onSuccess();
-					});
-					this.httpsServer.listen( this.sslPort );
-				}
-				catch (error) {
-					onError(error);
+					if (success == "E_PATHNOTFOUND") {
+						onError( new Error("E_INVALIDVIRTUALPATH: " + this.options.virtualDirectories[name].path));
+						return this;
+					}
+					if (success == "E_UNKNOWNHANDLER") {
+						onError( new Error("E_UNKNOWNHANDLER: " + this.options.virtualDirectories[name].handler));
+						return this;
+					}
 				}
 			}
-		}
-		else {
-			onError( new Error("E_NOSERVERPORT"));
+
+			this.addForbiddenPath( __dirname );
+			this._createAccessFilteringRules();
+
+			if (this.port || this.sslPort) {
+				const readines = { isReady: () => {
+					return (!this.port||!this.sslPort) || (readines.http && readines.https );
+				}};
+				if (this.port) {
+					try {
+						this._servers.http = http.createServer(( request, response ) => { 
+							this._onRequest( request, response );
+						}).on( "error", (error) => { this._handleStartError( onError, error );}
+						).on( "listening", () => { 
+							readines.http = true; 
+							this.onHttpReady();
+							readines.isReady() && onSuccess();
+						});
+						this.httpServer.listen( this.port );
+						
+					}
+					catch (error) {
+						onError(error);
+					}
+				}
+				if (this.sslPort) {
+					const https = require('https');
+					const options = {};
+				    if (this.httpsOptions.pfx) {
+				    	options.pfx = fs.readFileSync(this.httpsOptions.pfx);
+				    	options.passphrase = __exists(this.httpsOptions.passphrase) 
+				    		? fs.readFileSync(this.httpsOptions.passphrase)
+				    		: this.httpsOptions.passphrase;
+				    }
+				    else if (this.httpsOptions.key && this.httpsOptions.cert) {
+				    	options.key = fs.readFileSync(this.httpsOptions.key);
+				    	options.cert = fs.readFileSync(this.httpsOptions.cert);
+				    }
+				    else {
+						onError( new Error("E_INVALIDHTTPSOPTIONS"));
+				    }
+					try {
+						this._servers.https = https.createServer( options, (request, response) => {
+							this._onRequest( request, response );
+						}).on( "error", (error) => { this._handleStartError( onError, error, true );}
+						).on( "listening", () => { 
+							readines.https = true; 
+							this.onHttpsReady();
+							readines.isReady() && onSuccess();
+						});
+						this.httpsServer.listen( this.sslPort );
+					}
+					catch (error) {
+						onError(error);
+					}
+				}
+			}
+			else {
+				onError( new Error("E_NOSERVERPORT"));
+			}
+		} 
+		catch (error) {
+			// ensuring (coding) error writing to the log file.
+			console.log(error);
+			setTimeout( () => { throw error; }, 1000 );
 		}
 		return this;
 	}
@@ -380,23 +410,15 @@ class PrimalServer {
 		return this;
 	}
 
-	_beginsWithFolder( folder, _path ) {
-		const path = require("path");
-		folder = folder[0]== path.sep  ? folder : path.sep+folder;
-		if (_path.substr( 0, folder.length ) == folder) {
-			return _path.length == folder.length || _path[folder.length] == path.sep;
-		}
-		return false;
-	}
-
 	_createAccessFilteringRules() {
 		let rules = this.options.accessFiltering||[];
+		const sep = require("path").sep;
 		rules.forEach((rule) => {
 			if (rule.path) {
 				let path = rule.path;
 				let permitted = rule.status && rule.status[0] == "p";
-				if (!(path.substr(0,1) ==  path.sep || path.substr(1,1) == ":")) {
-					path = this.defaultDirectory +  path.sep + path;
+				if (!(path.substr(0,1) ==  sep || path.substr(1,1) == ":")) {
+					path = this.defaultDirectory +  sep + path;
 				}
 				permitted ? this.addPermittedPath(path) : this.addForbiddenPath(path);
 			}
@@ -420,23 +442,30 @@ class PrimalServer {
 	}
 
 	_onRequest( request, response ) {
-		const context = new RequestContext( this, request, response );
-		if (this.isForbidden( context.pathName )) {
-			console.log( this.getRemoteIp(request) + " FORBIDDEN: " + context.pathName );
-			this._sendResponse({ context: context, status: 403 });
-		}
-		else {
-			if (context.handler) {
-				this.onRequest(context);
-				context.handler.onRequest(context);
+		try {
+			const context = new RequestContext( this, request, response );
+			if (context.isForbidden()) {
+				console.log( this.getRemoteIp(request) + " FORBIDDEN: " + context.pathName );
+				this._sendResponse( context, { status: 403 });
 			}
 			else {
-				console.log( "SERVER ERROR: Virtual directory '" 
-					+ context.virtualDirectory.name 
-					+ "' does not have proper request handler (" 
-					+ context.handlerName + ") loaded." 
-				);
+				if (context.handler) {
+					this.onRequest(context);
+					context.handler.onRequest(context);
+				}
+				else {
+					console.log( "SERVER ERROR: Virtual directory '" 
+						+ context.virtualDirectory.name 
+						+ "' does not have proper request handler (" 
+						+ context.handlerName + ") loaded." 
+					);
+				}
 			}
+		} 
+		catch (error) {
+			// ensuring (coding) error writing to the log file.
+			console.log(error);
+			setTimeout( () => { throw error; }, 1000 );
 		}
 	}
 
@@ -444,17 +473,18 @@ class PrimalServer {
 		this.addVirtualDirectory({ name: this.apiEntryPoint, handlerName: "api" });
 	}
 	
-	_resetBase() {
-		this.addVirtualDirectory({ 
+	_resetRoot() {
+		this._removeRoot().addVirtualDirectory({ 
+			name: this.defaultDirectoryName,
 			path: this.defaultDirectory, 
-			handlerName: "default" 
+			handlerName: "default",
+			parent: false
 		});
-		this.base = this.getVirtualDirectory("/");
 	}
 
-	_sanitize(url) {
-		const path = require("path");
-		return path.normalize( decodeURI( url )).replace( /^(\.\.[\/\\])+/,  "" );
+	_removeRoot() {
+		this.root && delete this.virtualDirectories[this.root.fullname];
+		return this;
 	}
 
 	_sendResponse( context, params = {}) {
@@ -483,14 +513,30 @@ class PrimalServer {
 		return this.mimeTypes[ext.toLowerCase()]; // || "application/octet-stream";
 	}
 
-	_solveVirtualDirecory(path) {
-		let name;
-		for (name in this.virtualDirectories) {
-			if (this._beginsWithFolder( name, path )) {
-				return this.virtualDirectories[name];
-			}
+	_solveVDNamePar( name, parent ) {
+		if (!parent && name == "/") {
+			return name;
 		}
-		return this.base;
+		else if (!parent && name == this.defaultDirectoryName) {
+			return "/"+name;
+		}
+		parent = parent||this.root;
+		return parent.fullname + (parent.fullname=="/"?"":"/") + name;
+	}
+
+	_solveVirtualDirecory(path) {
+		let fullname;
+		let names = path.replace( /\\/g, "/" ).split("/");
+		while (names.length) {
+			path = names.join("/")||"/";
+			for (fullname in this.virtualDirectories) {
+				if (path == fullname) {
+					return this.virtualDirectories[fullname];
+				}
+			}
+			names = names.slice(0,-1);	
+		}
+		return this.root;
 	}
 }
 
@@ -503,10 +549,38 @@ class VirtualDirectory {
 		this.name = params.name||"/";
 		this.path = params.path;
 		this.handlerName = params.handlerName||"default";
+		this.server = params.server;
+		this.parent = params.parent;
+		this.defaultDocument = params.defaultDocument;
+		this.server.virtualDirectories[this.fullname] = this;
+	}
+
+	get fullname() {
+		if (this.isRoot()) {
+			return this.name == "/" ? this.name : "/" + this.name;
+		}
+		const fullname = this.parent.fullname;
+		if (fullname == "/") {
+			return "/" + this.name;
+		}
+		return fullname + "/" + this.name;
 	}
 
 	get handler() {
 		return requesthandler.getHandler( this.handlerName );
+	}
+
+	get parent() {
+		return this.isRoot() ? undefined : (this._parent || this.server.root);
+	}
+
+	set parent(value) {
+		this._parent = value;
+		return value;
+	}
+
+	isRoot() {
+		return this._parent === false;
 	}
 }
 
@@ -519,8 +593,10 @@ class RequestContext {
 			cookies: parseCookies(request),
 			url: require("url").parse( request.url, true, false )
 		};
+		this.p.pathName = this._sanitize( this.url.pathname );
 		this.p.virtualDirectory = this.server._solveVirtualDirecory(this.pathName);
 	}
+	
 	get cookies() {
 		return this.p.cookies;
 	}
@@ -534,12 +610,25 @@ class RequestContext {
 	}
 
 	get path() {
-		const path = require("path");
-		return this.pathName + (this.pathName == path.sep ? this.server.defaultDocument : "");
+		return this.pathName; 
 	}
 
 	get pathName() {
-		return this.p.server._sanitize( this.url.pathname );
+		return this.p.pathName;
+	}
+
+	get physicalPath() {
+		if (this.virtualDirectory.path == undefined) {
+			return undefined;
+		}
+		if (!this.p.physicalPath) {
+			const path = require("path");
+			const offset = this.virtualDirectory.fullname == "/" ? 0 : this.virtualDirectory.fullname.length;
+			this.p.physicalPath = decodeURI( path.join( this.virtualDirectory.path, this.pathName.substr( offset )
+				).replace( /%23/g, "#" )
+			);
+		}
+		return this.p.physicalPath;
 	}
 
 	get request() {
@@ -560,6 +649,33 @@ class RequestContext {
 
 	get virtualDirectory() {
 		return this.p.virtualDirectory;
+	}
+
+	isForbidden() {
+		if (!this._isPermitted()) {
+			const MS = require("path").sep == "\\";
+			const path = MS ? this.physicalPath.toLowerCase() : this.physicalPath;
+			return !!this.server.forbiddenPaths.find((forbiddenpath) => { 
+				return path.substr( 0, forbiddenpath.length ) == forbiddenpath;
+			});
+		}
+		return false;
+	}
+
+	_isPermitted() {
+		if (this.virtualDirectory.path == undefined) { // api
+			return true;
+		}
+		const MS = require("path").sep == "\\";
+		const path = MS ? this.physicalPath.toLowerCase() : this.physicalPath;
+		return !!this.server.permittedPaths.find((permittedpath) => { 
+			return path.substr( 0, permittedpath.length ) == permittedpath;
+		});
+	}
+
+	_sanitize(url) {
+		const path = require("path");
+		return path.normalize( decodeURI( url )).replace( /^(\.\.[\/\\])+/, "" ).replace( /\\/g, "/" );
 	}
 
 	setResponseCookie( cookie, encoder ) {

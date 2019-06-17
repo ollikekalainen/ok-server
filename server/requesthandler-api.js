@@ -100,58 +100,72 @@ class ApiRequestHandler extends RequestHandler {
 	}
 
 	_handle( params ) {
-		this._ensureSpecs();
-		let requestName = params.apiRequest.name;
-		this.logRequests
-			&& console.log( 
-				(params.context.request ? this.server.getRemoteIp( params.context.request ) : "") 
-				+ " Request: " + requestName 
+		try {
+			this._ensureSpecs();
+			let requestName = params.apiRequest.name;
+			this.logRequests
+				&& console.log( 
+					(params.context.request ? this.server.getRemoteIp( params.context.request ) : "") 
+					+ " Request: " + requestName 
+				);
+			let started = new Date().getTime();
+			this._validateRequest(
+				params.onError,
+				() => {
+					requestName = this.originalNames[requestName.toLowerCase()];
+					try {	
+						const context = new Context( 
+							this,
+							requestName,
+							(error) => { 
+								console.log(error); 
+								params.onError( this.newErrorResponse({
+									requestName: requestName,
+									code: !error ? "E_UNKNOWN" : (error.code||error.message),
+									message: (!error ? "" : error.message)||"Unknown error",
+									started: started
+								}));
+							},
+							(content) => { 
+								params.onSuccess( this.newResponse({
+									requestName: requestName,
+									content: content,
+									started: started
+								}));
+							}, 
+							params
+						);
+						try {
+							this.regularFunction[requestName]
+								? this.iface[requestName].worker.call(context,context)
+								: this.iface[requestName].worker(context);
+						}
+						catch (error) {
+							// ensuring (coding) error writing to the log file.
+							console.log(error);
+							setTimeout( () => { throw error; }, 1000 );
+						}
+					}
+					catch (error) {
+						console.log(error);
+						params.onError( this.newErrorResponse({
+							requestName: requestName,
+							code: "E_SYSTEM",
+							message: "Internal server error. Details written in the server's log file.",
+							started: started
+						}));
+					}
+				}, 
+				requestName, 
+				params.apiRequest.parameters, 
+				started 
 			);
-		let started = new Date().getTime();
-		this._validateRequest(
-			params.onError,
-			() => {
-				requestName = this.originalNames[requestName.toLowerCase()];
-				try {	
-					const context = new Context( 
-						this,
-						requestName,
-						(error) => { 
-							console.log(error); 
-							params.onError( this.newErrorResponse({
-								requestName: requestName,
-								code: !error ? "E_UNKNOWN" : (error.code||error.message),
-								message: (!error ? "" : error.message)||"Unknown error",
-								started: started
-							}));
-						},
-						(content) => { 
-							params.onSuccess( this.newResponse({
-								requestName: requestName,
-								content: content,
-								started: started
-							}));
-						}, 
-						params
-					);
-					this.regularFunction[requestName]
-						? this.iface[requestName].worker.call(context,context)
-						: this.iface[requestName].worker(context);
-				}
-				catch (error) {
-					console.log(error);
-					params.onError( this.newErrorResponse({
-						requestName: requestName,
-						code: "E_SYSTEM",
-						message: "Internal server error. Details written in the server's log file.",
-						started: started
-					}));
-				}
-			}, 
-			requestName, 
-			params.apiRequest.parameters, 
-			started 
-		);
+		} 
+		catch (error) {
+			// ensuring (coding) error writing to the log file.
+			console.log(error);
+			setTimeout( () => { throw error; }, 1000 );
+		}
 	}
 
 	_solveContentType(httpRequest) {

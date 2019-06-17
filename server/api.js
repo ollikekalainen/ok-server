@@ -22,7 +22,7 @@ class Api {
 			{ name: "api", description: { text: "API sprecifications" }, worker: (context) => { 
 				context.server.onApiApi( context.onError, context.onSuccess, context, api.iface );
 			}},
-			{ name: "getConfig", description: { text: "Clnent configuration options" }, worker: (context) => { 
+			{ name: "getConfig", description: { text: "Client configuration options" }, worker: (context) => { 
 				context.server.onApiGetConfig( context.onError, context.onSuccess, context, {} );
 			}}
 		]);

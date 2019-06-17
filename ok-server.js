@@ -43,26 +43,33 @@ class OKServer extends PrimalServer {
 	}
 
 	start( params={}) {
-		params.onError = params.onError||((error) => { this._handleError(error);})
-		params.onSuccess = params.onSuccess||(()=>{ console.log("Server started");});
-		const q = helper.queue();
-		q.add(
-			() => {
-				this._startPulse( params.onError, q.next());
-			},
-			() => {
-				const commands = { 
-					stop: (params) => { 
-						this.stop(() => { setTimeout( ()=>{ process.exit(0);}, 1000 );})
-					}
-				};
-				this.cmds = helper.newCmds({ interval: 1000, commands: commands });
-				this.cmds.start( params.onError, q.next());
-			},
-			() => {
-				super.start( params );
-			}
-		).proceed();
+		try {
+			params.onError = params.onError||((error) => { this._handleError(error);})
+			params.onSuccess = params.onSuccess||(()=>{ console.log("Server started");});
+			const q = helper.queue();
+			q.add(
+				() => {
+					this._startPulse( params.onError, q.next());
+				},
+				() => {
+					const commands = { 
+						stop: (params) => { 
+							this.stop(() => { setTimeout( ()=>{ process.exit(0);}, 1000 );})
+						}
+					};
+					this.cmds = helper.newCmds({ interval: 1000, commands: commands });
+					this.cmds.start( params.onError, q.next());
+				},
+				() => {
+					super.start( params );
+				}
+			).proceed();
+		} 
+		catch (error) {
+			// ensuring (coding) error writing to the log file.
+			console.log(error);
+			setTimeout( () => { throw error; }, 1000 );
+		}
 	}
 
 	stop( onStop ) {
