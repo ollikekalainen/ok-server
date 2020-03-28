@@ -1,7 +1,7 @@
 {
   "main": "ok-server.js",
   "name": "ok-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Basic node.js web server",
   "dependencies": {
     "clparser": ">= 1.0.0"
