@@ -1,7 +1,7 @@
 {
   "main": "ok-server.js",
   "name": "ok-server",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Basic node.js web server",
   "dependencies": {
     "clparser": ">= 1.0.0"
@@ -9,7 +9,7 @@
   "scripts": {
   },
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">= 14.16.0"
   },
   "bugs": "https://github.com/ollikekalainen/ok-server/issues",
   "keywords": [

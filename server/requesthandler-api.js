@@ -8,7 +8,7 @@
 
  
 
-  20190503
+  20211103
 ----------------------------------------------------------------------------------------
 */
 
@@ -238,7 +238,6 @@ class ApiRequestHandler extends RequestHandler {
 		params.headers["Pragma"] = "no-cache";
 		params.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
 		params.headers["Expires"] = 0;
-		params.headers["Access-Control-Allow-Origin"] = "*";
 		params.headers["Content-Type"] = "application/json; charset=utf-8";
 		params.headers["Content-Length"] = Buffer.from( params.body ).length;
 		this.sendResponse( context, params );
@@ -272,5 +271,3 @@ class Context {
 }
 
 module.exports = ApiRequestHandler;
-
-

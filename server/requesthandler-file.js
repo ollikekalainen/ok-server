@@ -10,7 +10,7 @@
 
  
 
-  20190617
+  20211103
 ----------------------------------------------------------------------------------------
 */
 
@@ -47,7 +47,7 @@ class FileRequestHandler extends RequestHandler {
 		let filename = context.physicalPath;
 
 		if (!fs.existsSync(filename)) {
-			this.sendResponse( context, { status: 404 });
+			this._sendResponse( context, { status: 404 });
 			return;
 		}
 
@@ -61,17 +61,17 @@ class FileRequestHandler extends RequestHandler {
 					// filename += context.virtualDirectory.defaultDocument;
 					filename = path.join( filename, context.virtualDirectory.defaultDocument );
 					if (!fs.existsSync(filename)) {
-						this.sendResponse( context, { status: 403.14 });
+						this._sendResponse( context, { status: 403.14 });
 						return;
 					}
 				}
 				else {
-					this.sendResponse( context, { status: 403.14 });
+					this._sendResponse( context, { status: 403.14 });
 					return;
 				}
 			}
 			else {
-				this.sendResponse( context, { status: 404 });
+				this._sendResponse( context, { status: 404 });
 				return;
 			}
 		}
@@ -79,7 +79,7 @@ class FileRequestHandler extends RequestHandler {
 			const stat = fs.statSync(filename);
 			const protocol = (request.connection && request.connection.encrypted) ? "https" : "http";
 			if (stat.isDirectory()) {
-				this.sendResponse( context, { 
+				this._sendResponse( context, { 
 					headers: { Location: protocol + "://" + request.headers.host + request.url + "/" }, 
 					status: 301 
 				});
@@ -89,7 +89,7 @@ class FileRequestHandler extends RequestHandler {
 
 		const contentType = this.solveMimeName(path.extname(filename));
 		if (!contentType) {
-			this.sendResponse( context, { status: 404.3 });
+			this._sendResponse( context, { status: 404.3 });
 			return;
 		}
 
@@ -99,8 +99,8 @@ class FileRequestHandler extends RequestHandler {
 			responseHeaders["Content-Type"] = contentType;
 			responseHeaders["Content-Length"] = stat.size;
 			responseHeaders["Accept-Ranges"] = "bytes";
-			responseHeaders["Access-Control-Allow-Origin"] = "*";
-			this.sendResponse( context, { 
+			// responseHeaders["Access-Control-Allow-Origin"] = "*";
+			this._sendResponse( context, { 
 				status: 200, 
 				headers: responseHeaders, 
 				body: fs.createReadStream(filename)
@@ -113,7 +113,7 @@ class FileRequestHandler extends RequestHandler {
 
 		if (start >= stat.size || end >= stat.size) {
 			responseHeaders["Content-Range"] = "bytes */" + stat.size;
-			this.sendResponse( context, { status: 416, headers: responseHeaders }); 
+			this._sendResponse( context, { status: 416, headers: responseHeaders }); 
 			return;
 		}
 
@@ -122,9 +122,9 @@ class FileRequestHandler extends RequestHandler {
 		responseHeaders["Content-Type"] = contentType;
 		responseHeaders["Accept-Ranges"] = "bytes";
 		responseHeaders["Cache-Control"] = "no-cache";
-		responseHeaders["Access-Control-Allow-Origin"] = "*";
+		// responseHeaders["Access-Control-Allow-Origin"] = "*";
 
-		this.sendResponse( context, { 
+		this._sendResponse( context, { 
 			status: 206, 
 			headers: responseHeaders, 
 			body: fs.createReadStream(filename, { start: start, end: end })
@@ -156,6 +156,11 @@ class FileRequestHandler extends RequestHandler {
 			}
 		}
 		return result;
+	}
+
+	_sendResponse( context, params = {} ) {
+		params.headers = params.headers||{};
+		this.sendResponse( context, params );
 	}
 }
 

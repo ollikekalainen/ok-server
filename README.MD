@@ -528,6 +528,11 @@ keyword.
         - **status** *string* ("forbidden"|"permitted")
 -   **apiEntryPoint**       *string* - Name of the virtual directory that serves as the entry point for the API requests. Default value is "api".
 -   **apiExtensions**       *array* - Full names of the API extension mofule files to be loaded before the server starts. Default is [].
+-   **cors**                *object* - Contains CORS related properties needed when client sends a pre-flight OPTIONS request.
+    -   **allowCredentials** *boolean* - If the *allowCredentials* is set as trua the *Access-Control-Allow-Credentials* response header is included into the response with value *true*. Default value is false.
+    -   **allowHeaders** *string* - Contains headers to be written in *Access-Control-Allow-Headers* response header. Default value is "authorization, content-type, x-requested-with".
+    -   **allowOrigin** *string* - Contains a comma-separated list of origins (or * character) against which the *origin* header of the request is checked. If the *origin*  header of the request matches, it is written in the *Access-Control-Allow-Origin* header of the response. If the origins list contains the * character only, it is written in the *Access-Control-Allow-Origin* header. Default value is "*".
+    - **maxAge** *number* - Contains a numeric value written in *Access-Control-Max-Age* response header. Default value is 7200.
 -   **defaultDirectory**    *string* - The full path of the root virtual directory. Default value is __dirname + "/examples/site".
 -   **defaultDirectoryName** *string* - The name of the default directory that is set as the name for the root virtual directory. The default is "/".    
 -   **defaultDocument**     *string* - Name of the default HTML document. Default value is "index.htm".
@@ -687,6 +692,9 @@ Provides an opportunity to modify API specifications, for example, to complete a
 
 -   **onHttpsReady()**  - An event method that is triggered when httpsServer is started listening. Overwrite this in child class.
 
+-   **onOptions(context)** - An event method that is triggered when the client sends a request with OPTIONS method. This method fills in the required CORS related response headers. Overwrite this in child class when a different approach is needed.
+    - **context**     *RequestContext* - The [*RequestContext*](#reference.requestcontext-class) object.
+
 -   **onRequest(context)** - An event method that is triggered before the actual handling of the request. Overwrite this in child class.
     - **context**     *RequestContext* - The [*RequestContext*](#reference.requestcontext-class) object.
 
@@ -783,6 +791,7 @@ the appropriate request handler as the only parameter of the onRequest method.
 -   **cookies**       *object* - Requests cookies.
 -   **handler**       *RequestHandler* - Request Handler object.
 -   **handlerName**   *string* - Name of the Request Handler serving the request.
+-   **origin**        *string* - The content of the request's *origin* header.
 -   **path**          *string* - The path in request URL.
 -   **pathName**      *string* - The path in request URL.
 -   **physicalPath**  *string* - The full physical path of the virtual directory to which the request URL indicates.
@@ -804,6 +813,9 @@ the appropriate request handler as the only parameter of the onRequest method.
     - **cookie** *object|array* - See [*OKServer.setResponseCookie()*](#reference.okserver-class.methods.setResponseCookie.cookie)
     - **encoder** *function*,  - See [*OKServer.setResponseCookie()*](#reference.okserver-class.methods.setResponseCookie.encoder)
 
+-   **solveAllowedOrigin() -> string** - Returns *RequestContext.origin* if it is included in the list of allowed origins in the server settings or if the allowed origin setting contains the * character.
+        This method is automaticly called by the server.
+    - **return value**: *boolean*
 
 <a name="reference.module-requesthandler"></a>
 ### Module requesthandler

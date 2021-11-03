@@ -9,7 +9,7 @@
 
  
 
- 20190617
+ 20211103
 -----------------------------------------------------------------------------------------
 */
 "use strict";
@@ -61,6 +61,30 @@ class PrimalServer {
 			this.options.apiExtensions = [];
 		}
 		return this.options.apiExtensions;
+	}
+
+	get cors() {
+		return this.options.cors||{};
+	}
+
+	get corsAllowCredentials() {
+		return this.cors.allowCredentials||false;
+	}
+
+	get corsAllowHeaders() {
+		return this.cors.allowHeaders||"authorization, content-type, x-requested-with";
+	}
+
+	get corsAllowOrigin() {
+		return this.cors.allowOrigin||"*";
+	}
+
+	get corsExposeHeaders() {
+		return this.cors.exposeHeaders||"";
+	}
+
+	get corsMaxAge() {
+		return this.cors.maxAge||7200;
 	}
 
 	get defaultDirectory() {
@@ -204,18 +228,9 @@ class PrimalServer {
 		return "OK";
 	}
 
-
 	extendApi(apiExtension) {
 		require( "./api" ).extend(apiExtension);
 		return this;
-	}
-
-	onApiApi( onError, onSuccess, context, iface ) {
-		onSuccess(iface);
-	}
-
-	onApiGetConfig( onError, onSuccess, context, config ) {
-		onSuccess(config);
 	}
 
 	getRemoteIp( request ) {
@@ -274,6 +289,32 @@ class PrimalServer {
 
 	onHttpsReady() {
 		// Overwrite this in child class. Will be called after the httpsServer is ready to listen.
+	}
+
+	onOptions( context ) {
+		const headers = context.request.headers["access-control-request-headers"];
+		const method = context.request.headers["access-control-request-method"];
+		const setHeader = (header,value) => context.response.setHeader( header, value );
+		if (headers == undefined || method == undefined) {
+			// Not a CORS preflight request
+			context.response.statusCode = 204;
+			setHeader( "Allow", "POST, GET, OPTIONS" );
+		}
+		else {
+			const allowedOrigin = context.solveAllowedOrigin();
+			if (allowedOrigin && headers.trim().length && method.trim().length) {
+				setHeader( "Access-Control-Allow-Origin", allowedOrigin );
+				setHeader( "Access-Control-Allow-Headers", this.corsAllowHeaders );
+				setHeader( "Access-Control-Allow-Methods", "POST, GET, OPTIONS" );
+				setHeader( "Access-Control-Max-Age", "" + this.corsMaxAge );
+				this.corsExposeHeaders && setHeader( "Access-Control-Expose-Headers", this.corsExposeHeaders );
+				this.corsAllowCredentials && setHeader( "Access-Control-Allow-Credentials", "true" );
+			}
+			else {
+				// Not supported CORS preflight request (headers)
+				setHeader( "Content-Type", "text/html; charset=utf-8" ); // this invalidates CORS request
+			}
+		}
 	}
 
 	onRequest(context) { 
@@ -425,6 +466,20 @@ class PrimalServer {
 		});
 	}
 
+	_endResponse( httpResponse, content ) {
+		if (!httpResponse.writableEnded) {
+			httpResponse.end(content);
+		}
+		else {
+			// This usually happens when the http response with the error info 
+			// is sent after the httpResponse.end() method is already called.
+			console.log( 
+				"E_HTTPRESPONSE_ENDED_ALREADY - " + new Error().stack + "\n" 
+				+ "Response content: " + content 
+			);
+		}
+	}
+
 	_handleStartError( onError, error, ssl ) {
 		if (error.code == "EADDRINUSE") {
 			const e = new Error(ssl ? "E_HTTPSPORTINUSE" : "E_HTTPPORTINUSE");
@@ -444,7 +499,11 @@ class PrimalServer {
 	_onRequest( request, response ) {
 		try {
 			const context = new RequestContext( this, request, response );
-			if (context.isForbidden()) {
+			if (request.method == "OPTIONS") {
+				this.onOptions(context);
+				this._endResponse(response);
+			}
+			else if (context.isForbidden()) {
 				console.log( this.getRemoteIp(request) + " FORBIDDEN: " + context.pathName );
 				this._sendResponse( context, { status: 403 });
 			}
@@ -493,19 +552,20 @@ class PrimalServer {
 		// params.headers 		objects, default: {}
 		// params.body	 		string/readableStream, default: undefined
 
+		const allowedOrigin = context.solveAllowedOrigin();
 		params.status = params.status||200;
 		params.headers = params.headers||{};
-
+		allowedOrigin && (params.headers["Access-Control-Allow-Origin"] = allowedOrigin);
 		this.onResponse( context, params );
 		context.response.writeHead( params.status, params.headers );
 		if (params.body == null || params.body == undefined) {
-			context.response.end();
+			this._endResponse( context.response );
 		}
 		else if (isReadable(params.body)) {
 			params.body.on( "open", () => { params.body.pipe(context.response); });
 		}
 		else {
-			context.response.end( "" + params.body );
+			this._endResponse( context.response, "" + params.body );
 		}
 	}
 
@@ -591,7 +651,8 @@ class RequestContext {
 			request: request,
 			response: response,
 			cookies: parseCookies(request),
-			url: require("url").parse( request.url, true, false )
+			url: require("url").parse( request.url, true, false ),
+			origin: request.headers.origin
 		};
 		this.p.pathName = this._sanitize( this.url.pathname );
 		this.p.virtualDirectory = this.server._solveVirtualDirecory(this.pathName);
@@ -607,6 +668,10 @@ class RequestContext {
 
 	get handlerName() {
 		return this.p.virtualDirectory.handlerName;
+	}
+
+	get origin() {
+		return this.p.origin;
 	}
 
 	get path() {
@@ -662,6 +727,21 @@ class RequestContext {
 		return false;
 	}
 
+	setResponseCookie( cookie, encoder ) {
+		this.server.setResponseCookie( this.response, cookie, encoder );
+	}
+
+	solveAllowedOrigin() {
+		let allowed = false;
+		this.server.corsAllowOrigin.split(",").forEach((origin) => {
+			origin = origin.trim();
+			if (!allowed && (origin == "*" || origin == this.origin)) {
+				allowed = origin;
+			}
+		});
+		return allowed;
+	}
+
 	_isPermitted() {
 		if (this.virtualDirectory.path == undefined) { // api
 			return true;
@@ -677,11 +757,6 @@ class RequestContext {
 		const path = require("path");
 		return path.normalize( decodeURI( url )).replace( /^(\.\.[\/\\])+/, "" ).replace( /\\/g, "/" );
 	}
-
-	setResponseCookie( cookie, encoder ) {
-		this.server.setResponseCookie( this.response, cookie, encoder );
-	}
-
 }
 
 // ---------------------------------------------------------------------------------------------

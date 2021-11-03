@@ -8,8 +8,8 @@
 
 
 
- 20190513
-----------------------------------------------------------------------------------------------------
+20211103
+-----------------------------------------------------------------------------------------------------
 */
 "use strict";
 
@@ -139,7 +139,14 @@ okserver.defaultOptions = {
 	pulseInterval: 1000,
 	readinessTimeout: 10000,
 	sslPort: 0,	// 0: no https support
-    virtualDirectories: {}
+    virtualDirectories: {},
+    cors: {
+    	allowCredentials: false,
+    	allowHeaders: "authorization, content-type, x-requested-with",
+    	allowOrigin: "*",
+    	exposeHeaders: "",
+    	maxAge: 7200
+    }
 };
 
 okserver.defineApiRequest = (definition) => {
