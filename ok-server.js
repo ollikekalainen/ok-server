@@ -7,9 +7,66 @@
 
 
 
+ Rev 1.0.6
+ ----------
+ 	Fixed a bug that prevented multiple server instances in the same directory from starting
+ 	by using different ports when using the same options file. The server now checks - when 
+ 	opening the pulse file - the port 	number using the server's port getter property instead 
+ 	of reading it from the initialization option's port/sslPort property. After the fix 
+ 	the port/sslPort getter can be successfully overwritten in the server class extending 
+ 	the OKServer class.
 
-20211103
------------------------------------------------------------------------------------------------------
+
+Rev 1.0.5
+----------
+
+	Added CORS functionality to the server.
+ 
+
+Rev 1.0.4
+----------
+
+	Fixed an issue with the api extension that occurred when node.js loaded the api module 
+	more than once.
+
+
+Rev 1.0.3
+----------
+
+	-	Added property OKServer.defaultDirectoryName
+	-	Added property OKServer.root
+	-	Changed method OKServer.addVirtualDirectory(params) - Added two new properties 
+		to the param parameter: defaultDocument and parent.
+	-	Deprecated method OKServer.isForbidden()
+	-	Deprecated method OKServer.isPermitted()
+	-	Added property VirtualDirectory.server
+	-	Added property VirtualDirectory.parent
+	-	Added property VirtualDirectory.defaultDocument
+	-	Changed property RequestContext.path - Returns same value as RequestContext.pathName. 
+		Does not add the default document in the end of the path anymore.
+	-	Added property RequestContext.physicalPath
+	-	Added method RequestContext.isForbidden()
+	-	Changed FileRequestHandler class - It is now responsible for handling of 
+		the defaultDocument.
+
+
+Rev 1.0.2
+----------
+
+	Bug fix in Cmds.exec() method on server/helper.js.
+
+
+Rev 1.0.1
+----------
+
+	OKServer.addVirtualDirectory() now returns a string value that indicates the success 
+	of the action.
+
+
+
+
+ 20221004
+----------------------------------------------------------------------------------------------------
 */
 "use strict";
 
@@ -81,7 +138,7 @@ class OKServer extends PrimalServer {
 
 	_startPulse( onError, onSuccess ) {
 		if (this.options.pulseFolder) {
-			const filename = "pulse-" + (this.options.port||this.options.sslPort) + ".json";
+			const filename = "pulse-" + (this.port||this.sslPort) + ".json";
 			this.pulse = helper.newPulse({ 
 				interval: this.options.pulseInterval||1000, 
 				filename: helper.platformize( this.options.pulseFolder + "/" + filename )
