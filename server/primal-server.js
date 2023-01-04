@@ -689,9 +689,11 @@ class RequestContext {
 		if (!this.p.physicalPath) {
 			const path = require("path");
 			const offset = this.virtualDirectory.fullname == "/" ? 0 : this.virtualDirectory.fullname.length;
-			this.p.physicalPath = decodeURI( path.join( this.virtualDirectory.path, this.pathName.substr( offset )
-				).replace( /%23/g, "#" )
-			);
+			// this.p.physicalPath = decodeURI( path.join( this.virtualDirectory.path, this.pathName.substr( offset )
+			// 	).replace( /%23/g, "#" )
+			// );
+			// Changed 20221230: uri decoded already in method _sanitize().
+			this.p.physicalPath = path.join( this.virtualDirectory.path, this.pathName.substr( offset ).replace( /%23/g, "#" ));
 		}
 		return this.p.physicalPath;
 	}

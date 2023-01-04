@@ -757,7 +757,7 @@ case of the root virtual directory - with the property [*root*](#reference.okser
 #### Initialization
 
 Context objects are initialized by the OKServer's API System and passed to a API services'
-worker functions as the first parameter (and also as #this# keyword if the worker function is not an array function).
+worker functions as the first parameter (and also as *this* keyword if the worker function is not an array function).
 
 <a name="reference.context-class.properties"></a>
 #### Properties

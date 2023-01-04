@@ -458,7 +458,6 @@ helper.jsonParse = function ( onError, onSuccess, source, filename ) {
 	 	else {
 	 		return JSON.parse( source );
 	 	}
- 		onSuccess( source );
 	}
 	catch(error) {
 		let msg = "Failed to parse json. Error message: <message>.";
@@ -470,10 +469,17 @@ helper.jsonParse = function ( onError, onSuccess, source, filename ) {
 				).Name( "Parse"
 				).Aux( error
 				).Message( msg
-				).Stack( new Error().stack
+				).Stack( error.stack
 				).Code( "E_PARSE"
 			)
 		);
+	}
+	try {
+		onSuccess( source );
+	}
+	catch (error) {
+		error.code = "E_INTERNAL";
+		onError(error);
 	}
 };
 
